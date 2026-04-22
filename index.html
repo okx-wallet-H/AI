@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>AI 智能交易策略</title>
+<title>AI 智能交易</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;700;900&display=swap');
 
@@ -28,860 +28,656 @@ body {
   color: var(--text);
   font-family: 'Noto Sans SC', sans-serif;
   min-height: 100vh;
-  overflow-x: hidden;
 }
 
-/* 背景动画 */
 body::before {
   content: '';
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: 
-    radial-gradient(ellipse at 20% 20%, rgba(0,212,255,0.05) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, rgba(168,85,247,0.05) 0%, transparent 50%);
+  inset: 0;
+  background: radial-gradient(ellipse at 20% 20%, rgba(0,212,255,0.04) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 80%, rgba(168,85,247,0.04) 0%, transparent 50%);
   pointer-events: none;
-  z-index: 0;
 }
 
-.container { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 16px; }
+.wrap { position: relative; max-width: 480px; margin: 0 auto; padding: 16px; }
 
 /* Header */
 .header {
   text-align: center;
-  padding: 30px 16px 20px;
-  background: linear-gradient(180deg, rgba(0,212,255,0.08) 0%, transparent 100%);
+  padding: 24px 0 20px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 0;
+  margin-bottom: 14px;
 }
+.header .sub { font-family: 'Orbitron'; font-size: 10px; letter-spacing: 4px; color: var(--accent); opacity: 0.7; margin-bottom: 8px; }
+.header h1 { font-size: 24px; font-weight: 900; background: linear-gradient(135deg, #00d4ff, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.header p { font-size: 11px; color: var(--muted); margin-top: 6px; }
 
-.header .logo {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 11px;
-  letter-spacing: 4px;
-  color: var(--accent);
-  margin-bottom: 8px;
-  opacity: 0.8;
-}
-
-.header h1 {
-  font-size: 26px;
-  font-weight: 900;
-  background: linear-gradient(135deg, #00d4ff, #a855f7);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1.2;
-}
-
-.header p {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 8px;
-}
-
-/* GLM Key输入 */
-.key-section {
+/* Cards */
+.card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 16px;
-  margin: 16px 0 12px;
-}
-
-.key-section label {
-  font-size: 11px;
-  color: var(--accent);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  display: block;
   margin-bottom: 10px;
 }
 
-.key-input-wrap {
-  display: flex;
-  gap: 8px;
-}
-
-.key-input-wrap input {
-  flex: 1;
-  background: var(--card2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 14px;
-  color: var(--text);
-  font-size: 13px;
-  outline: none;
-  font-family: monospace;
-}
-
-.key-input-wrap input:focus { border-color: var(--accent); }
-.key-input-wrap input::placeholder { color: var(--muted); font-size: 11px; }
-
-.eye-btn {
-  background: var(--card2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0 14px;
-  cursor: pointer;
-  font-size: 16px;
-  color: var(--muted);
-}
-
-/* 步骤 */
-.step {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 18px;
+.card-title {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
   margin-bottom: 12px;
 }
 
-.step-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-}
+/* Inputs */
+label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 5px; margin-top: 10px; }
+label:first-of-type { margin-top: 0; }
 
-.step-num {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), var(--purple));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 700;
-  color: #000;
-  flex-shrink: 0;
-}
+.input-row { display: flex; gap: 8px; }
+.input-row input { flex: 1; }
 
-.step-title {
-  font-size: 15px;
-  font-weight: 700;
+input, select {
+  width: 100%;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 14px;
   color: var(--text);
+  font-size: 14px;
+  outline: none;
+  font-family: 'Noto Sans SC', sans-serif;
+  transition: border-color 0.2s;
 }
+input:focus, select:focus { border-color: var(--accent); }
+input::placeholder { color: var(--muted); font-size: 11px; }
+input[type=number] { font-family: 'Orbitron', monospace; }
 
-/* 风险选择 */
-.risk-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
+.eye { background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 0 12px; cursor: pointer; font-size: 15px; flex-shrink: 0; }
 
-.risk-card {
+/* Risk */
+.risk-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.risk-btn {
   background: var(--card2);
   border: 2px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 8px;
+  border-radius: 10px;
+  padding: 12px 6px;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s;
   user-select: none;
 }
+.risk-btn.sel-c { border-color: var(--green); background: rgba(0,255,136,0.08); }
+.risk-btn.sel-m { border-color: var(--gold); background: rgba(245,158,11,0.08); }
+.risk-btn.sel-a { border-color: var(--red); background: rgba(255,68,102,0.08); }
+.risk-btn .ico { font-size: 22px; }
+.risk-btn .nm { font-size: 12px; font-weight: 700; margin-top: 4px; }
+.risk-btn .dc { font-size: 10px; color: var(--muted); margin-top: 2px; }
 
-.risk-card:active { transform: scale(0.97); }
-.risk-card.selected { border-color: var(--accent); background: rgba(0,212,255,0.08); }
+/* Quick amounts */
+.qtns { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.qtn { background: var(--card2); border: 1px solid var(--border); border-radius: 7px; padding: 5px 11px; font-size: 11px; cursor: pointer; color: var(--muted); transition: all 0.2s; }
+.qtn:hover { border-color: var(--accent); color: var(--accent); }
 
-.risk-card.conservative.selected { border-color: var(--green); background: rgba(0,255,136,0.08); }
-.risk-card.moderate.selected { border-color: var(--gold); background: rgba(245,158,11,0.08); }
-.risk-card.aggressive.selected { border-color: var(--red); background: rgba(255,68,102,0.08); }
-
-.risk-emoji { font-size: 28px; display: block; margin-bottom: 6px; }
-.risk-name { font-size: 13px; font-weight: 700; }
-.risk-desc { font-size: 10px; color: var(--muted); margin-top: 3px; }
-
-/* 资金输入 */
-.amount-input {
-  position: relative;
-}
-
-.amount-input input {
+/* Analyze button */
+.btn-analyze {
   width: 100%;
-  background: var(--card2);
-  border: 1px solid var(--border);
+  padding: 16px;
   border-radius: 12px;
-  padding: 14px 60px 14px 16px;
-  color: var(--text);
-  font-size: 20px;
-  font-weight: 700;
-  outline: none;
-  font-family: 'Orbitron', monospace;
-}
-
-.amount-input input:focus { border-color: var(--accent); }
-.amount-unit {
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--accent);
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.quick-amounts {
-  display: flex;
-  gap: 6px;
-  margin-top: 8px;
-  flex-wrap: wrap;
-}
-
-.quick-btn {
-  background: var(--card2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 12px;
-  cursor: pointer;
-  color: var(--muted);
-  transition: all 0.2s;
-}
-
-.quick-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-/* 分析按钮 */
-.analyze-btn {
-  width: 100%;
-  padding: 18px;
-  border-radius: 14px;
   border: none;
   background: linear-gradient(135deg, #00d4ff, #a855f7);
   color: #000;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 900;
   cursor: pointer;
-  font-family: 'Noto Sans SC', sans-serif;
-  letter-spacing: 2px;
-  transition: all 0.3s;
-  margin-bottom: 16px;
-  position: relative;
-  overflow: hidden;
+  font-family: 'Noto Sans SC';
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  transition: opacity 0.2s;
 }
+.btn-analyze:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.analyze-btn::before {
-  content: '';
-  position: absolute;
-  top: 0; left: -100%;
-  width: 100%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transition: left 0.5s;
-}
-
-.analyze-btn:hover::before { left: 100%; }
-.analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* 加载动画 */
-.loading {
-  display: none;
-  text-align: center;
-  padding: 30px;
-}
-
-.loading.show { display: block; }
-
-.loading-ring {
-  width: 50px; height: 50px;
-  border: 3px solid var(--border);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 16px;
-}
-
+/* Loading */
+.loading { display: none; text-align: center; padding: 24px; }
+.loading.on { display: block; }
+.spin { width: 44px; height: 44px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px; }
 @keyframes spin { to { transform: rotate(360deg); } }
+.ltxt { font-size: 13px; color: var(--muted); }
 
-.loading-text {
-  font-size: 14px;
-  color: var(--muted);
-  animation: blink 1.5s infinite;
-}
+/* Result */
+.result { display: none; }
+.result.on { display: block; animation: up 0.4s ease; }
+@keyframes up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+/* Market list */
+.mrow { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(30,58,95,0.4); }
+.mrow:last-child { border: none; }
+.mrow .mn { font-size: 13px; font-weight: 700; }
+.mrow .mp { font-size: 11px; color: var(--muted); font-family: monospace; }
+.mrow .mc { font-size: 13px; font-weight: 700; font-family: monospace; }
+.mc.up { color: var(--green); }
+.mc.dn { color: var(--red); }
+.star-row { background: rgba(0,212,255,0.06); border-radius: 8px; padding: 5px 8px; margin: -5px -8px; }
 
-/* 结果卡片 */
-.result {
-  display: none;
-  animation: fadeIn 0.5s ease;
-}
-
-.result.show { display: block; }
-
-@keyframes fadeIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-
-.result-header {
+/* Strategy header */
+.strat-head {
   background: linear-gradient(135deg, var(--card), var(--card2));
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 10px;
+  border-radius: 14px;
+  padding: 18px;
   text-align: center;
-}
-
-.result-coin {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 28px;
-  font-weight: 900;
-  color: var(--accent);
-}
-
-.result-strategy {
-  font-size: 14px;
-  color: var(--muted);
-  margin-top: 4px;
-}
-
-.result-signal {
-  display: inline-block;
-  padding: 6px 20px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 700;
-  margin-top: 10px;
-  letter-spacing: 1px;
-}
-
-.signal-long { background: rgba(0,255,136,0.15); color: var(--green); border: 1px solid var(--green); }
-.signal-short { background: rgba(255,68,102,0.15); color: var(--red); border: 1px solid var(--red); }
-.signal-wait { background: rgba(100,116,139,0.15); color: var(--muted); border: 1px solid var(--muted); }
-.signal-grid { background: rgba(0,212,255,0.15); color: var(--accent); border: 1px solid var(--accent); }
-
-/* 参数卡片 */
-.params-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 16px;
   margin-bottom: 10px;
 }
+.strat-coin { font-family: 'Orbitron'; font-size: 26px; font-weight: 900; color: var(--accent); }
+.strat-type { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.signal-tag { display: inline-block; padding: 5px 18px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-top: 10px; letter-spacing: 1px; }
+.sl { background: rgba(0,255,136,0.12); color: var(--green); border: 1px solid var(--green); }
+.ss { background: rgba(255,68,102,0.12); color: var(--red); border: 1px solid var(--red); }
+.sg { background: rgba(0,212,255,0.12); color: var(--accent); border: 1px solid var(--accent); }
 
-.params-title {
-  font-size: 11px;
-  color: var(--accent);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 14px;
-}
+/* Params */
+.prow { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid rgba(30,58,95,0.4); }
+.prow:last-child { border: none; }
+.plb { font-size: 12px; color: var(--muted); }
+.pvl { font-size: 13px; font-weight: 700; font-family: 'Orbitron', monospace; }
+.pvl.ac { color: var(--accent); }
+.pvl.gn { color: var(--green); }
+.pvl.rd { color: var(--red); }
+.pvl.gd { color: var(--gold); }
 
-.param-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(30,58,95,0.5);
-}
-
-.param-row:last-child { border-bottom: none; }
-.param-label { font-size: 13px; color: var(--muted); }
-.param-value { font-size: 14px; font-weight: 700; color: var(--text); font-family: 'Orbitron', monospace; }
-.param-value.green { color: var(--green); }
-.param-value.red { color: var(--red); }
-.param-value.gold { color: var(--gold); }
-.param-value.accent { color: var(--accent); }
-
-/* AI分析文本 */
-.ai-analysis {
+/* AI text */
+.ai-box {
   background: var(--card);
   border: 1px solid var(--border);
   border-left: 3px solid var(--purple);
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 10px;
-}
-
-.ai-analysis .ai-title {
-  font-size: 11px;
-  color: var(--purple);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 10px;
-}
-
-.ai-analysis .ai-text {
-  font-size: 13px;
-  line-height: 1.8;
-  color: var(--text);
-}
-
-/* 风险提示 */
-.risk-warning {
-  background: rgba(255,68,102,0.08);
-  border: 1px solid rgba(255,68,102,0.2);
-  border-radius: 12px;
-  padding: 12px;
-  font-size: 11px;
-  color: #fca5a5;
-  line-height: 1.7;
-  margin-bottom: 10px;
-}
-
-/* 复制按钮 */
-.copy-btn {
-  width: 100%;
+  border-radius: 14px;
   padding: 14px;
+  margin-bottom: 10px;
+}
+.ai-box .atitle { font-size: 10px; color: var(--purple); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+.ai-box .atext { font-size: 13px; line-height: 1.8; color: var(--text); }
+
+/* Execute button */
+.btn-exec {
+  width: 100%;
+  padding: 18px;
   border-radius: 12px;
-  border: 1px solid var(--accent);
-  background: rgba(0,212,255,0.08);
-  color: var(--accent);
-  font-size: 14px;
-  font-weight: 700;
+  border: none;
+  font-size: 17px;
+  font-weight: 900;
   cursor: pointer;
-  font-family: 'Noto Sans SC', sans-serif;
+  font-family: 'Noto Sans SC';
+  letter-spacing: 1px;
   margin-bottom: 8px;
   transition: all 0.2s;
 }
+.btn-exec.long { background: linear-gradient(135deg, #00ff88, #00b894); color: #000; }
+.btn-exec.short { background: linear-gradient(135deg, #ff4466, #c0392b); color: #fff; }
+.btn-exec.grid { background: linear-gradient(135deg, #00d4ff, #0984e3); color: #000; }
+.btn-exec:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.copy-btn:hover { background: rgba(0,212,255,0.15); }
+.btn-re { width: 100%; padding: 13px; border-radius: 12px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; font-family: 'Noto Sans SC'; margin-bottom: 20px; }
 
-.reanalyze-btn {
-  width: 100%;
-  padding: 14px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--muted);
-  font-size: 14px;
-  cursor: pointer;
-  font-family: 'Noto Sans SC', sans-serif;
-  margin-bottom: 20px;
-}
-
-/* 市场扫描 */
-.market-scan {
+/* Position monitor */
+.pos-card {
+  display: none;
   background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 16px;
+  border: 1px solid var(--green);
+  border-radius: 14px;
+  padding: 14px;
   margin-bottom: 10px;
+  animation: up 0.3s ease;
 }
+.pos-card.on { display: block; }
+.pos-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.pos-symbol { font-family: 'Orbitron'; font-size: 16px; font-weight: 700; color: var(--accent); }
+.pos-dir { font-size: 12px; font-weight: 700; }
+.pos-dir.long { color: var(--green); }
+.pos-dir.short { color: var(--red); }
+.pos-pnl { font-family: 'Orbitron'; font-size: 28px; font-weight: 900; text-align: center; margin: 8px 0; }
+.pos-pnl.up { color: var(--green); }
+.pos-pnl.dn { color: var(--red); }
+.pos-meta { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
 
-.market-title {
-  font-size: 11px;
-  color: var(--gold);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 12px;
+.btn-close {
+  width: 100%;
+  padding: 13px;
+  border-radius: 10px;
+  border: 1px solid var(--red);
+  background: rgba(255,68,102,0.1);
+  color: var(--red);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Noto Sans SC';
+  margin-top: 10px;
+  transition: all 0.2s;
 }
+.btn-close:hover { background: rgba(255,68,102,0.2); }
 
-.coin-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(30,58,95,0.3);
-}
+.warn { background: rgba(255,68,102,0.07); border: 1px solid rgba(255,68,102,0.2); border-radius: 10px; padding: 10px; font-size: 11px; color: #fca5a5; line-height: 1.7; margin-bottom: 10px; }
 
-.coin-row:last-child { border-bottom: none; }
-.coin-name { font-size: 13px; font-weight: 700; }
-.coin-price { font-size: 12px; color: var(--muted); font-family: monospace; }
-.coin-change { font-size: 13px; font-weight: 700; font-family: monospace; }
-.coin-change.up { color: var(--green); }
-.coin-change.down { color: var(--red); }
-
-.selected-coin { background: rgba(0,212,255,0.05); border-radius: 8px; padding: 4px 8px; margin: -4px -8px; }
+/* Toast */
+.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--card2); border: 1px solid var(--accent); border-radius: 10px; padding: 12px 20px; font-size: 13px; color: var(--accent); z-index: 999; display: none; }
+.toast.on { display: block; animation: up 0.3s ease; }
 </style>
 </head>
 <body>
 
+<div class="wrap">
+
 <div class="header">
-  <div class="logo">POWERED BY GLM AI</div>
-  <h1>AI 智能交易策略</h1>
-  <p>实时分析行情 · 智能匹配策略 · 适合所有用户</p>
+  <div class="sub">GLM AI POWERED</div>
+  <h1>AI 智能交易</h1>
+  <p>分析行情 → 生成策略 → 一键执行</p>
 </div>
 
-<div class="container">
-
-  <!-- GLM Key -->
-  <div class="key-section">
-    <label>🔑 智谱 GLM API Key</label>
-    <div class="key-input-wrap">
-      <input type="password" id="glmKey" placeholder="粘贴你的 GLM API Key（免费注册：bigmodel.cn）">
-      <button class="eye-btn" onclick="toggleEye()">👁</button>
+<!-- 持仓监控 -->
+<div class="pos-card" id="posCard">
+  <div class="pos-top">
+    <div>
+      <div class="pos-symbol" id="posSymbol">--</div>
+      <div class="pos-dir" id="posDir">--</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:11px;color:var(--muted)">入场价</div>
+      <div style="font-size:13px;font-weight:700;font-family:monospace" id="posEntry">--</div>
     </div>
   </div>
+  <div class="pos-pnl" id="posPnl">--</div>
+  <div class="pos-meta">
+    <span id="posMeta1">--</span>
+    <span id="posMeta2">--</span>
+  </div>
+  <button class="btn-close" onclick="closePosition()">⛔ 立即平仓</button>
+</div>
 
-  <!-- 步骤1：风险偏好 -->
-  <div class="step">
-    <div class="step-header">
-      <div class="step-num">1</div>
-      <div class="step-title">选择你的风险偏好</div>
-    </div>
-    <div class="risk-grid">
-      <div class="risk-card conservative" onclick="selectRisk('conservative', this)">
-        <span class="risk-emoji">🛡️</span>
-        <div class="risk-name" style="color:#00ff88">保守型</div>
-        <div class="risk-desc">稳健为主<br>月收益3-8%</div>
-      </div>
-      <div class="risk-card moderate selected" onclick="selectRisk('moderate', this)">
-        <span class="risk-emoji">⚖️</span>
-        <div class="risk-name" style="color:#f59e0b">稳健型</div>
-        <div class="risk-desc">平衡收益<br>月收益8-20%</div>
-      </div>
-      <div class="risk-card aggressive" onclick="selectRisk('aggressive', this)">
-        <span class="risk-emoji">🚀</span>
-        <div class="risk-name" style="color:#ff4466">激进型</div>
-        <div class="risk-desc">高风险高回报<br>月收益20%+</div>
-      </div>
-    </div>
+<!-- Keys -->
+<div class="card">
+  <div class="card-title" style="color:var(--accent)">🔑 API 配置</div>
+
+  <label>智谱 GLM Key（免费：bigmodel.cn）</label>
+  <div class="input-row">
+    <input type="password" id="glmKey" placeholder="粘贴 GLM API Key">
+    <button class="eye" onclick="tog('glmKey')">👁</button>
   </div>
 
-  <!-- 步骤2：资金 -->
-  <div class="step">
-    <div class="step-header">
-      <div class="step-num">2</div>
-      <div class="step-title">输入参与资金</div>
-    </div>
-    <div class="amount-input">
-      <input type="number" id="amount" value="500" min="50" placeholder="输入金额">
-      <span class="amount-unit">USDT</span>
-    </div>
-    <div class="quick-amounts">
-      <button class="quick-btn" onclick="setAmount(100)">100U</button>
-      <button class="quick-btn" onclick="setAmount(300)">300U</button>
-      <button class="quick-btn" onclick="setAmount(500)">500U</button>
-      <button class="quick-btn" onclick="setAmount(1000)">1000U</button>
-      <button class="quick-btn" onclick="setAmount(3000)">3000U</button>
-      <button class="quick-btn" onclick="setAmount(5000)">5000U</button>
-    </div>
+  <label>OKX API Key</label>
+  <div class="input-row">
+    <input type="password" id="okxKey" placeholder="OKX API Key">
+    <button class="eye" onclick="tog('okxKey')">👁</button>
   </div>
 
-  <!-- 分析按钮 -->
-  <button class="analyze-btn" id="analyzeBtn" onclick="startAnalysis()">
-    🤖 AI 智能分析 · 生成策略
-  </button>
-
-  <!-- 加载 -->
-  <div class="loading" id="loading">
-    <div class="loading-ring"></div>
-    <div class="loading-text" id="loadingText">正在扫描市场行情...</div>
+  <label>OKX Secret Key</label>
+  <div class="input-row">
+    <input type="password" id="okxSecret" placeholder="OKX Secret Key">
+    <button class="eye" onclick="tog('okxSecret')">👁</button>
   </div>
 
-  <!-- 结果 -->
-  <div class="result" id="result">
-
-    <!-- 市场扫描结果 -->
-    <div class="market-scan">
-      <div class="market-title">📡 实时市场扫描</div>
-      <div id="marketList"></div>
-    </div>
-
-    <!-- 策略推荐 -->
-    <div class="result-header">
-      <div class="result-coin" id="resultCoin">--</div>
-      <div class="result-strategy" id="resultStrategy">--</div>
-      <div>
-        <span class="result-signal" id="resultSignal">--</span>
-      </div>
-    </div>
-
-    <!-- 交易参数 -->
-    <div class="params-card">
-      <div class="params-title">⚙️ 推荐交易参数</div>
-      <div class="param-row">
-        <span class="param-label">交易品种</span>
-        <span class="param-value accent" id="pCoin">--</span>
-      </div>
-      <div class="param-row">
-        <span class="param-label">策略类型</span>
-        <span class="param-value" id="pType">--</span>
-      </div>
-      <div class="param-row">
-        <span class="param-label">建议杠杆</span>
-        <span class="param-value gold" id="pLever">--</span>
-      </div>
-      <div class="param-row">
-        <span class="param-label">入场仓位</span>
-        <span class="param-value" id="pPosition">--</span>
-      </div>
-      <div class="param-row">
-        <span class="param-label">止损位</span>
-        <span class="param-value red" id="pStop">--</span>
-      </div>
-      <div class="param-row">
-        <span class="param-label">止盈位</span>
-        <span class="param-value green" id="pProfit">--</span>
-      </div>
-      <div class="param-row">
-        <span class="param-label">预期收益</span>
-        <span class="param-value green" id="pExpect">--</span>
-      </div>
-      <div class="param-row">
-        <span class="param-label">最大风险</span>
-        <span class="param-value red" id="pRisk">--</span>
-      </div>
-    </div>
-
-    <!-- AI分析 -->
-    <div class="ai-analysis">
-      <div class="ai-title">🧠 AI 深度分析</div>
-      <div class="ai-text" id="aiText">--</div>
-    </div>
-
-    <!-- 风险提示 -->
-    <div class="risk-warning">
-      ⚠️ 本策略由AI根据实时行情生成，仅供参考，不构成投资建议。加密货币交易有极高风险，请根据自身情况决策，做好风险管理。
-    </div>
-
-    <button class="copy-btn" onclick="copyStrategy()">📋 复制策略参数</button>
-    <button class="reanalyze-btn" onclick="reAnalyze()">🔄 重新分析</button>
-
+  <label>OKX Passphrase</label>
+  <div class="input-row">
+    <input type="password" id="okxPass" placeholder="OKX Passphrase">
+    <button class="eye" onclick="tog('okxPass')">👁</button>
   </div>
+</div>
+
+<!-- 风险 -->
+<div class="card">
+  <div class="card-title" style="color:var(--gold)">⚡ 风险偏好</div>
+  <div class="risk-row">
+    <div class="risk-btn" id="rc" onclick="selRisk('c')">
+      <div class="ico">🛡️</div>
+      <div class="nm" style="color:var(--green)">保守</div>
+      <div class="dc">3x · 月3-8%</div>
+    </div>
+    <div class="risk-btn sel-m" id="rm" onclick="selRisk('m')">
+      <div class="ico">⚖️</div>
+      <div class="nm" style="color:var(--gold)">稳健</div>
+      <div class="dc">5x · 月8-20%</div>
+    </div>
+    <div class="risk-btn" id="ra" onclick="selRisk('a')">
+      <div class="ico">🚀</div>
+      <div class="nm" style="color:var(--red)">激进</div>
+      <div class="dc">10x · 月20%+</div>
+    </div>
+  </div>
+</div>
+
+<!-- 资金 -->
+<div class="card">
+  <div class="card-title" style="color:var(--purple)">💰 参与资金</div>
+  <input type="number" id="amount" value="500" placeholder="输入金额">
+  <div class="qtns">
+    <span class="qtn" onclick="setAmt(100)">100U</span>
+    <span class="qtn" onclick="setAmt(300)">300U</span>
+    <span class="qtn" onclick="setAmt(500)">500U</span>
+    <span class="qtn" onclick="setAmt(1000)">1000U</span>
+    <span class="qtn" onclick="setAmt(3000)">3000U</span>
+    <span class="qtn" onclick="setAmt(5000)">5000U</span>
+  </div>
+</div>
+
+<button class="btn-analyze" id="btnAnalyze" onclick="analyze()">🤖 AI分析 · 生成策略</button>
+
+<!-- Loading -->
+<div class="loading" id="loading">
+  <div class="spin"></div>
+  <div class="ltxt" id="ltxt">正在扫描市场...</div>
+</div>
+
+<!-- Result -->
+<div class="result" id="result">
+
+  <div class="card">
+    <div class="card-title" style="color:var(--gold)">📡 实时行情扫描</div>
+    <div id="mktList"></div>
+  </div>
+
+  <div class="strat-head">
+    <div class="strat-coin" id="rCoin">--</div>
+    <div class="strat-type" id="rType">--</div>
+    <div><span class="signal-tag" id="rSignal">--</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="color:var(--accent)">⚙️ 交易参数</div>
+    <div class="prow"><span class="plb">交易品种</span><span class="pvl ac" id="pCoin">--</span></div>
+    <div class="prow"><span class="plb">策略类型</span><span class="pvl" id="pType">--</span></div>
+    <div class="prow"><span class="plb">建议杠杆</span><span class="pvl gd" id="pLever">--</span></div>
+    <div class="prow"><span class="plb">入场仓位</span><span class="pvl" id="pPos">--</span></div>
+    <div class="prow"><span class="plb">止损</span><span class="pvl rd" id="pSL">--</span></div>
+    <div class="prow"><span class="plb">止盈</span><span class="pvl gn" id="pTP">--</span></div>
+    <div class="prow"><span class="plb">预期盈利</span><span class="pvl gn" id="pExpect">--</span></div>
+    <div class="prow"><span class="plb">最大亏损</span><span class="pvl rd" id="pMaxLoss">--</span></div>
+  </div>
+
+  <div class="ai-box">
+    <div class="atitle">🧠 AI 深度分析</div>
+    <div class="atext" id="aiTxt">--</div>
+  </div>
+
+  <div class="warn">⚠️ 以下执行按钮将在您的OKX账户进行真实交易，请确认参数无误后再点击。加密货币交易存在极高风险。</div>
+
+  <button class="btn-exec" id="btnExec" onclick="execute()">-- 点击执行交易 --</button>
+  <button class="btn-re" onclick="reAnalyze()">🔄 重新分析</button>
+
+</div>
+
+<div class="toast" id="toast"></div>
 
 </div>
 
 <script>
-let selectedRisk = 'moderate';
-let marketData = [];
-let currentStrategy = {};
+let risk = 'm';
+let strat = {};
+let bestCoin = null;
+let posTimer = null;
 
-function toggleEye() {
-  const el = document.getElementById('glmKey');
-  el.type = el.type === 'password' ? 'text' : 'password';
-}
+const RISK = {
+  c: { lever: 3, pos: 30, sl: 8, tp: 15, coins: ['BTC','ETH'] },
+  m: { lever: 5, pos: 50, sl: 12, tp: 25, coins: ['ETH','SOL','DOGE'] },
+  a: { lever: 10, pos: 70, sl: 20, tp: 50, coins: ['SOL','DOGE','PEPE','WIF'] },
+};
 
-function selectRisk(risk, el) {
-  selectedRisk = risk;
-  document.querySelectorAll('.risk-card').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-}
-
-function setAmount(v) {
-  document.getElementById('amount').value = v;
-}
-
-function setLoading(text) {
-  document.getElementById('loadingText').textContent = text;
-}
-
-// 扫描行情
 const COINS = [
-  { id: 'BTC-USDT-SWAP', name: 'BTC', icon: '₿' },
-  { id: 'ETH-USDT-SWAP', name: 'ETH', icon: 'Ξ' },
-  { id: 'SOL-USDT-SWAP', name: 'SOL', icon: '◎' },
-  { id: 'DOGE-USDT-SWAP', name: 'DOGE', icon: '🐶' },
-  { id: 'PEPE-USDT-SWAP', name: 'PEPE', icon: '🐸' },
-  { id: 'WIF-USDT-SWAP', name: 'WIF', icon: '🐕' },
+  {id:'BTC-USDT-SWAP', name:'BTC', ico:'₿'},
+  {id:'ETH-USDT-SWAP', name:'ETH', ico:'Ξ'},
+  {id:'SOL-USDT-SWAP', name:'SOL', ico:'◎'},
+  {id:'DOGE-USDT-SWAP', name:'DOGE', ico:'🐶'},
+  {id:'PEPE-USDT-SWAP', name:'PEPE', ico:'🐸'},
+  {id:'WIF-USDT-SWAP', name:'WIF', ico:'🐕'},
 ];
 
-async function fetchTicker(coin) {
+function tog(id) { const e=document.getElementById(id); e.type=e.type==='password'?'text':'password'; }
+function setAmt(v) { document.getElementById('amount').value=v; }
+function selRisk(r) {
+  risk=r;
+  ['c','m','a'].forEach(x => document.getElementById('r'+x).className='risk-btn');
+  document.getElementById('r'+r).className='risk-btn sel-'+r;
+}
+
+function toast(msg, dur=2500) {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('on');
+  setTimeout(()=>el.classList.remove('on'), dur);
+}
+
+function setL(t) { document.getElementById('ltxt').textContent=t; }
+
+async function getTicker(coin) {
   try {
-    const r = await fetch(`https://www.okx.com/api/v5/market/ticker?instId=${coin.id}`);
-    const d = await r.json();
-    if (d.code === '0' && d.data.length) {
-      const t = d.data[0];
-      const price = parseFloat(t.last);
-      const open = parseFloat(t.sodUtc8) || price;
-      const change = (price - open) / open * 100;
-      return { ...coin, price, change, high: parseFloat(t.high24h), low: parseFloat(t.low24h), vol: parseFloat(t.volCcy24h) };
+    const r=await fetch(`https://www.okx.com/api/v5/market/ticker?instId=${coin.id}`);
+    const d=await r.json();
+    if(d.code==='0'&&d.data.length) {
+      const t=d.data[0];
+      const price=parseFloat(t.last);
+      const open=parseFloat(t.sodUtc8)||price;
+      return {...coin, price, change:(price-open)/open*100, high:parseFloat(t.high24h), low:parseFloat(t.low24h)};
     }
   } catch(e) {}
   return null;
 }
 
-async function fetchKlines(instId) {
+async function getKlines(id) {
   try {
-    const r = await fetch(`https://www.okx.com/api/v5/market/candles?instId=${instId}&bar=1H&limit=24`);
-    const d = await r.json();
-    if (d.code === '0') {
-      return d.data.reverse().map(c => ({
-        open: parseFloat(c[1]), high: parseFloat(c[2]),
-        low: parseFloat(c[3]), close: parseFloat(c[4]), vol: parseFloat(c[5])
-      }));
-    }
+    const r=await fetch(`https://www.okx.com/api/v5/market/candles?instId=${id}&bar=1H&limit=12`);
+    const d=await r.json();
+    if(d.code==='0') return d.data.reverse().map(c=>({o:parseFloat(c[1]),h:parseFloat(c[2]),l:parseFloat(c[3]),c:parseFloat(c[4])}));
   } catch(e) {}
   return [];
 }
 
-async function askGLM(prompt) {
-  const key = document.getElementById('glmKey').value.trim();
-  if (!key) throw new Error('请填写GLM Key');
-
-  const r = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${key}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'glm-4-flash',
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 600,
-      temperature: 0.4
-    })
+async function glm(prompt) {
+  const key=document.getElementById('glmKey').value.trim();
+  if(!key) throw new Error('请填写GLM Key');
+  const r=await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions',{
+    method:'POST',
+    headers:{'Authorization':`Bearer ${key}`,'Content-Type':'application/json'},
+    body:JSON.stringify({model:'glm-4-flash',messages:[{role:'user',content:prompt}],max_tokens:500,temperature:0.4})
   });
-
-  const d = await r.json();
-  if (d.error) throw new Error(d.error.message);
-  return d.choices?.[0]?.message?.content || '';
+  const d=await r.json();
+  if(d.error) throw new Error(d.error.message);
+  return d.choices?.[0]?.message?.content||'';
 }
 
-function getRiskParams(risk) {
-  const params = {
-    conservative: { lever: '3x', positionPct: 30, stopPct: 8, tpPct: 15, desc: '保守稳健', coins: ['BTC', 'ETH'] },
-    moderate: { lever: '5x', positionPct: 50, stopPct: 12, tpPct: 25, desc: '稳健平衡', coins: ['ETH', 'SOL', 'DOGE'] },
-    aggressive: { lever: '10x', positionPct: 70, stopPct: 20, tpPct: 50, desc: '激进高收益', coins: ['SOL', 'DOGE', 'PEPE', 'WIF'] },
-  };
-  return params[risk];
+async function okxReq(method, path, body=null) {
+  const key=document.getElementById('okxKey').value.trim();
+  const secret=document.getElementById('okxSecret').value.trim();
+  const pass=document.getElementById('okxPass').value.trim();
+  const ts=new Date().toISOString().replace(/\.\d{3}Z/,'.000Z');
+  const bodyStr=body?JSON.stringify(body):'';
+  const msg=ts+method+path+bodyStr;
+  const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+  const sig=await crypto.subtle.sign('HMAC',k,new TextEncoder().encode(msg));
+  const sign=btoa(String.fromCharCode(...new Uint8Array(sig)));
+  try {
+    const r=await fetch('https://www.okx.com'+path,{
+      method,
+      headers:{'OK-ACCESS-KEY':key,'OK-ACCESS-SIGN':sign,'OK-ACCESS-TIMESTAMP':ts,'OK-ACCESS-PASSPHRASE':pass,'Content-Type':'application/json'},
+      body:bodyStr||undefined
+    });
+    return await r.json();
+  } catch(e) { return {code:'-1',msg:e.message}; }
 }
 
-async function startAnalysis() {
-  const key = document.getElementById('glmKey').value.trim();
-  if (!key) { alert('请先填写GLM API Key！'); return; }
+async function analyze() {
+  const glmKey=document.getElementById('glmKey').value.trim();
+  if(!glmKey) { alert('请先填写GLM Key'); return; }
 
-  const amount = parseFloat(document.getElementById('amount').value) || 500;
+  const amount=parseFloat(document.getElementById('amount').value)||500;
+  const rp=RISK[risk];
 
-  document.getElementById('analyzeBtn').disabled = true;
-  document.getElementById('loading').classList.add('show');
-  document.getElementById('result').classList.remove('show');
+  document.getElementById('btnAnalyze').disabled=true;
+  document.getElementById('loading').classList.add('on');
+  document.getElementById('result').classList.remove('on');
 
   try {
-    // 扫描行情
-    setLoading('📡 正在扫描6大币种行情...');
-    const tickers = await Promise.all(COINS.map(fetchTicker));
-    marketData = tickers.filter(Boolean);
+    setL('📡 扫描6大币种行情...');
+    const tickers=(await Promise.all(COINS.map(getTicker))).filter(Boolean);
 
-    // 显示市场数据
-    const riskP = getRiskParams(selectedRisk);
-    const preferredCoins = marketData.filter(c => riskP.coins.includes(c.name));
-    const bestCoin = preferredCoins.sort((a,b) => Math.abs(b.change) - Math.abs(a.change))[0] || marketData[0];
+    const preferred=tickers.filter(c=>rp.coins.includes(c.name));
+    const pool=preferred.length?preferred:tickers;
+    bestCoin=pool.sort((a,b)=>Math.abs(b.change)-Math.abs(a.change))[0];
 
-    // 渲染市场列表
-    const listEl = document.getElementById('marketList');
-    listEl.innerHTML = marketData.map(c => `
-      <div class="coin-row ${c.id === bestCoin.id ? 'selected-coin' : ''}">
-        <span class="coin-name">${c.icon} ${c.name} ${c.id === bestCoin.id ? '⭐' : ''}</span>
-        <span class="coin-price">${c.price < 0.01 ? c.price.toFixed(6) : c.price < 1 ? c.price.toFixed(4) : c.price.toFixed(2)}</span>
-        <span class="coin-change ${c.change >= 0 ? 'up' : 'down'}">${c.change >= 0 ? '+' : ''}${c.change.toFixed(2)}%</span>
-      </div>
-    `).join('');
+    // 渲染市场
+    document.getElementById('mktList').innerHTML=tickers.map(c=>`
+      <div class="mrow ${c.id===bestCoin.id?'star-row':''}">
+        <span class="mn">${c.ico} ${c.name}${c.id===bestCoin.id?' ⭐':''}</span>
+        <span class="mp">${c.price<0.01?c.price.toFixed(6):c.price<1?c.price.toFixed(4):c.price.toFixed(2)}</span>
+        <span class="mc ${c.change>=0?'up':'dn'}">${c.change>=0?'+':''}${c.change.toFixed(2)}%</span>
+      </div>`).join('');
 
-    // 获取K线
-    setLoading(`🕯️ 正在分析 ${bestCoin.name} K线数据...`);
-    const klines = await fetchKlines(bestCoin.id);
-    const klineSummary = klines.slice(-6).map((k,i) => 
-      `H${i+1}: O${k.open.toFixed(2)} H${k.high.toFixed(2)} L${k.low.toFixed(2)} C${k.close.toFixed(2)}`
-    ).join(', ');
+    setL(`🕯️ 分析 ${bestCoin.name} K线数据...`);
+    const klines=await getKlines(bestCoin.id);
+    const klSummary=klines.slice(-6).map((k,i)=>`H${i+1}:C${k.c.toFixed(2)}`).join(' ');
 
-    // GLM分析
-    setLoading('🧠 AI正在深度分析策略...');
-    const prompt = `You are a professional crypto trading strategist. Analyze the following market data and generate a specific trading strategy.
+    setL('🧠 GLM AI 深度分析中...');
+    const prompt=`Crypto trading expert. Analyze market and generate strategy in JSON only.
 
-MARKET DATA:
-- Selected coin: ${bestCoin.name} (${bestCoin.id})
-- Current price: ${bestCoin.price}
-- 24h change: ${bestCoin.change.toFixed(2)}%
-- 24h high: ${bestCoin.high}
-- 24h low: ${bestCoin.low}
-- Recent 6H candles: ${klineSummary}
+Coin: ${bestCoin.name} Price: ${bestCoin.price} 24hChange: ${bestCoin.change.toFixed(2)}%
+High: ${bestCoin.high} Low: ${bestCoin.low}
+6H candles: ${klSummary}
+Risk: ${risk==='c'?'conservative':risk==='m'?'moderate':'aggressive'} Leverage: ${rp.lever}x Capital: ${amount}U
 
-USER PROFILE:
-- Risk type: ${selectedRisk} (${riskP.desc})
-- Capital: ${amount} USDT
-- Suggested leverage: ${riskP.lever}
+JSON format only, no other text:
+{"signal":"LONG or SHORT","strategy":"趋势跟随 or 动量突破 or 波段交易","sl_pct":${rp.sl},"tp_pct":${rp.tp},"leverage":${rp.lever},"position":${Math.floor(amount*rp.pos/100)},"hold":"持仓时间","analysis":"3句中文分析当前行情、入场理由、注意事项","confidence":"高 or 中 or 低"}`;
 
-Analyze the trend and generate a strategy. Reply in this EXACT JSON format only, no other text:
-{
-  "signal": "LONG or SHORT or GRID",
-  "strategy_type": "短线突破 or 趋势跟随 or 网格震荡",
-  "entry_price": ${bestCoin.price},
-  "stop_loss_pct": ${riskP.stopPct},
-  "take_profit_pct": ${riskP.tpPct},
-  "leverage": "${riskP.lever}",
-  "position_size": ${Math.floor(amount * riskP.positionPct / 100)},
-  "hold_time": "预计持仓时间",
-  "analysis": "3-4句中文分析：当前趋势、入场理由、风险提示",
-  "confidence": "高 or 中 or 低"
-}`;
+    const reply=await glm(prompt);
+    let s;
+    try { const m=reply.match(/\{[\s\S]*\}/); s=JSON.parse(m[0]); }
+    catch(e) { s={signal:bestCoin.change>0?'LONG':'SHORT',strategy:'趋势跟随',sl_pct:rp.sl,tp_pct:rp.tp,leverage:rp.lever,position:Math.floor(amount*rp.pos/100),hold:'4-8小时',analysis:reply.substring(0,150),confidence:'中'}; }
 
-    const reply = await askGLM(prompt);
-
-    // 解析JSON
-    let strategy;
-    try {
-      const match = reply.match(/\{[\s\S]*\}/);
-      strategy = JSON.parse(match[0]);
-    } catch(e) {
-      // 如果JSON解析失败，用默认策略
-      strategy = {
-        signal: bestCoin.change > 0 ? 'LONG' : 'SHORT',
-        strategy_type: '趋势跟随',
-        entry_price: bestCoin.price,
-        stop_loss_pct: riskP.stopPct,
-        take_profit_pct: riskP.tpPct,
-        leverage: riskP.lever,
-        position_size: Math.floor(amount * riskP.positionPct / 100),
-        hold_time: '4-12小时',
-        analysis: reply.substring(0, 200),
-        confidence: '中'
-      };
-    }
-
-    currentStrategy = { ...strategy, coin: bestCoin.name, amount };
+    strat={...s, coin:bestCoin, amount};
 
     // 渲染结果
-    document.getElementById('resultCoin').textContent = `${bestCoin.icon} ${bestCoin.name}`;
-    document.getElementById('resultStrategy').textContent = strategy.strategy_type + ' · 信心度：' + strategy.confidence;
+    document.getElementById('rCoin').textContent=`${bestCoin.ico} ${bestCoin.name}`;
+    document.getElementById('rType').textContent=s.strategy+' · 信心：'+s.confidence;
 
-    const signalEl = document.getElementById('resultSignal');
-    if (strategy.signal === 'LONG') {
-      signalEl.textContent = '📈 做多信号';
-      signalEl.className = 'result-signal signal-long';
-    } else if (strategy.signal === 'SHORT') {
-      signalEl.textContent = '📉 做空信号';
-      signalEl.className = 'result-signal signal-short';
-    } else {
-      signalEl.textContent = '📊 网格策略';
-      signalEl.className = 'result-signal signal-grid';
-    }
+    const sig=document.getElementById('rSignal');
+    if(s.signal==='LONG'){sig.textContent='📈 做多信号';sig.className='signal-tag sl';}
+    else{sig.textContent='📉 做空信号';sig.className='signal-tag ss';}
 
-    const stopAmt = (strategy.position_size * strategy.stop_loss_pct / 100 * parseInt(strategy.leverage)).toFixed(1);
-    const tpAmt = (strategy.position_size * strategy.take_profit_pct / 100 * parseInt(strategy.leverage)).toFixed(1);
+    const stopAmt=(s.position*s.sl_pct/100*s.leverage).toFixed(1);
+    const tpAmt=(s.position*s.tp_pct/100*s.leverage).toFixed(1);
 
-    document.getElementById('pCoin').textContent = bestCoin.name + '/USDT';
-    document.getElementById('pType').textContent = strategy.strategy_type;
-    document.getElementById('pLever').textContent = strategy.leverage;
-    document.getElementById('pPosition').textContent = strategy.position_size + ' USDT (' + riskP.positionPct + '% 仓位)';
-    document.getElementById('pStop').textContent = '-' + strategy.stop_loss_pct + '% (约-' + stopAmt + 'U)';
-    document.getElementById('pProfit').textContent = '+' + strategy.take_profit_pct + '% (约+' + tpAmt + 'U)';
-    document.getElementById('pExpect').textContent = '+' + tpAmt + ' USDT';
-    document.getElementById('pRisk').textContent = '-' + stopAmt + ' USDT';
-    document.getElementById('aiText').textContent = strategy.analysis;
+    document.getElementById('pCoin').textContent=bestCoin.name+'/USDT 永续';
+    document.getElementById('pType').textContent=s.strategy;
+    document.getElementById('pLever').textContent=s.leverage+'x';
+    document.getElementById('pPos').textContent=s.position+' USDT';
+    document.getElementById('pSL').textContent='-'+s.sl_pct+'% (约-'+stopAmt+'U)';
+    document.getElementById('pTP').textContent='+'+s.tp_pct+'% (约+'+tpAmt+'U)';
+    document.getElementById('pExpect').textContent='+'+tpAmt+' USDT';
+    document.getElementById('pMaxLoss').textContent='-'+stopAmt+' USDT';
+    document.getElementById('aiTxt').textContent=s.analysis;
 
-    document.getElementById('loading').classList.remove('show');
-    document.getElementById('result').classList.add('show');
+    const btn=document.getElementById('btnExec');
+    if(s.signal==='LONG'){btn.textContent='📈 执行做多 '+bestCoin.name;btn.className='btn-exec long';}
+    else{btn.textContent='📉 执行做空 '+bestCoin.name;btn.className='btn-exec short';}
+
+    document.getElementById('loading').classList.remove('on');
+    document.getElementById('result').classList.add('on');
 
   } catch(e) {
-    document.getElementById('loading').classList.remove('show');
-    alert('分析失败：' + e.message + '\n请检查GLM Key是否正确');
+    document.getElementById('loading').classList.remove('on');
+    alert('分析失败：'+e.message);
   }
-
-  document.getElementById('analyzeBtn').disabled = false;
+  document.getElementById('btnAnalyze').disabled=false;
 }
 
-function copyStrategy() {
-  const s = currentStrategy;
-  const text = `【AI交易策略】
-币种：${s.coin}/USDT 永续合约
-方向：${s.signal === 'LONG' ? '做多📈' : s.signal === 'SHORT' ? '做空📉' : '网格📊'}
-策略：${s.strategy_type}
-杠杆：${s.leverage}
-仓位：${s.position_size} USDT
-止损：-${s.stop_loss_pct}%
-止盈：+${s.take_profit_pct}%
-持仓：${s.hold_time}
-分析：${s.analysis}
-⚠️ 仅供参考，注意风险`;
+async function execute() {
+  if(!strat.coin) return;
+  const okxKey=document.getElementById('okxKey').value.trim();
+  if(!okxKey) { alert('请填写OKX API Key才能执行交易'); return; }
+  if(!confirm(`确认执行：\n${strat.signal==='LONG'?'做多📈':'做空📉'} ${strat.coin.name}\n${strat.leverage}倍杠杆 · ${strat.position}U\n止损-${strat.sl_pct}% 止盈+${strat.tp_pct}%\n\n点确认立即下单！`)) return;
 
-  navigator.clipboard.writeText(text).then(() => {
-    alert('✅ 策略已复制！可直接发给社区成员');
-  }).catch(() => {
-    prompt('复制以下内容：', text);
-  });
+  document.getElementById('btnExec').disabled=true;
+  toast('⏳ 正在下单...');
+
+  try {
+    // 设置杠杆
+    await okxReq('POST','/api/v5/account/set-leverage',{instId:strat.coin.id,lever:String(strat.leverage),mgnMode:'cross'});
+
+    // 计算张数
+    const price=strat.coin.price;
+    let sz=Math.max(1,Math.floor(strat.position/price/10));
+    if(['PEPE','BONK','SHIB','FLOKI'].some(x=>strat.coin.id.includes(x))) sz=Math.max(1,Math.floor(strat.position/price/100));
+
+    const result=await okxReq('POST','/api/v5/trade/order',{
+      instId:strat.coin.id,
+      tdMode:'cross',
+      side:strat.signal==='LONG'?'buy':'sell',
+      posSide:strat.signal==='LONG'?'long':'short',
+      ordType:'market',
+      sz:String(sz)
+    });
+
+    if(result.code==='0') {
+      toast('✅ 下单成功！开始监控持仓');
+      showPosition();
+    } else {
+      alert('下单失败：'+result.msg+'\n\n可能原因：\n1. 合约权限未开通\n2. 资金不足\n3. Key填写有误');
+      document.getElementById('btnExec').disabled=false;
+    }
+  } catch(e) {
+    alert('执行失败：'+e.message);
+    document.getElementById('btnExec').disabled=false;
+  }
+}
+
+function showPosition() {
+  const card=document.getElementById('posCard');
+  card.classList.add('on');
+  document.getElementById('posSymbol').textContent=strat.coin.name+'/USDT';
+  document.getElementById('posDir').textContent=(strat.signal==='LONG'?'📈 做多':'📉 做空')+' · '+strat.leverage+'x';
+  document.getElementById('posDir').className='pos-dir '+(strat.signal==='LONG'?'long':'short');
+  document.getElementById('posEntry').textContent=strat.coin.price<0.01?strat.coin.price.toFixed(6):strat.coin.price.toFixed(4);
+  document.getElementById('posMeta1').textContent='止损 -'+strat.sl_pct+'%';
+  document.getElementById('posMeta2').textContent='止盈 +'+strat.tp_pct+'%';
+  document.getElementById('posPnl').textContent='计算中...';
+  window.scrollTo(0,0);
+  startMonitor();
+}
+
+function startMonitor() {
+  if(posTimer) clearInterval(posTimer);
+  posTimer=setInterval(async()=>{
+    try {
+      const r=await okxReq('GET','/api/v5/account/positions?instId='+strat.coin.id);
+      if(r.data&&r.data.length) {
+        const pnlRatio=parseFloat(r.data[0].uplRatio||0);
+        const pnlPct=(pnlRatio*100).toFixed(2);
+        const pnlEl=document.getElementById('posPnl');
+        pnlEl.textContent=(pnlRatio>=0?'+':'')+pnlPct+'%';
+        pnlEl.className='pos-pnl '+(pnlRatio>=0?'up':'dn');
+
+        // 自动止损止盈
+        if(pnlRatio<=-strat.sl_pct/100) { toast('⚠️ 触发止损，自动平仓'); await closePosition(); }
+        if(pnlRatio>=strat.tp_pct/100) { toast('🎉 触发止盈，自动平仓'); await closePosition(); }
+      } else {
+        // 没有持仓了
+        clearInterval(posTimer);
+        document.getElementById('posCard').classList.remove('on');
+        document.getElementById('btnExec').disabled=false;
+      }
+    } catch(e) {}
+  }, 5000);
+}
+
+async function closePosition() {
+  clearInterval(posTimer);
+  try {
+    const r=await okxReq('POST','/api/v5/trade/close-position',{instId:strat.coin.id,mgnMode:'cross',autoCxl:true});
+    if(r.code==='0') {
+      toast('✅ 平仓成功');
+      document.getElementById('posCard').classList.remove('on');
+      document.getElementById('btnExec').disabled=false;
+    } else {
+      alert('平仓失败：'+r.msg);
+    }
+  } catch(e) { alert('平仓失败：'+e.message); }
 }
 
 function reAnalyze() {
-  document.getElementById('result').classList.remove('show');
-  window.scrollTo(0, 0);
+  document.getElementById('result').classList.remove('on');
+  window.scrollTo(0,0);
 }
 </script>
 </body>
