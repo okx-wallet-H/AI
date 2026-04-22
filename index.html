@@ -3,420 +3,302 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>OKX AI 量化交易</title>
+<title>OKX AI 自动交易</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;700;900&display=swap');
 
-:root {
-  --bg: #03050f;
-  --card: #080d1e;
-  --card2: #0d1428;
-  --border: #1a2540;
-  --accent: #00d4ff;
-  --accent2: #7b2fff;
-  --green: #00ff88;
-  --red: #ff3366;
-  --gold: #ffd700;
-  --text: #e8f0ff;
-  --muted: #4a6080;
-}
+  :root {
+    --bg: #0a0e1a;
+    --card: #111827;
+    --card2: #1f2937;
+    --accent: #f59e0b;
+    --green: #10b981;
+    --red: #ef4444;
+    --blue: #3b82f6;
+    --text: #f9fafb;
+    --muted: #6b7280;
+    --border: #374151;
+  }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Noto Sans SC', sans-serif;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans SC', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
 
-/* 动态背景 */
-body::before {
-  content: '';
-  position: fixed;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(ellipse at 20% 20%, rgba(0,212,255,0.05) 0%, transparent 50%),
-              radial-gradient(ellipse at 80% 80%, rgba(123,47,255,0.05) 0%, transparent 50%);
-  animation: bgMove 8s ease-in-out infinite alternate;
-  pointer-events: none;
-  z-index: 0;
-}
+  .header {
+    background: linear-gradient(135deg, #1a1f35 0%, #0d1117 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 20px 16px 16px;
+    text-align: center;
+  }
 
-@keyframes bgMove {
-  0% { transform: translate(0,0); }
-  100% { transform: translate(20px, 20px); }
-}
+  .header h1 {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: 2px;
+  }
 
-/* 顶部Header */
-.header {
-  position: relative;
-  padding: 24px 16px 20px;
-  text-align: center;
-  border-bottom: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(0,212,255,0.08) 0%, transparent 100%);
-  overflow: hidden;
-}
+  .header p {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
 
-.header::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
-}
+  .status-bar {
+    background: var(--card);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
 
-.logo {
-  font-family: 'Orbitron', monospace;
-  font-size: 24px;
-  font-weight: 900;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: 3px;
-  margin-bottom: 4px;
-}
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+  }
+  .status-dot.running { background: var(--green); animation: pulse 1.5s infinite; }
+  .status-dot.error { background: var(--red); }
 
-.logo-sub {
-  font-size: 11px;
-  color: var(--muted);
-  letter-spacing: 4px;
-  text-transform: uppercase;
-}
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
 
-/* 状态栏 */
-.status-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px;
-  background: var(--card);
-  border-bottom: 1px solid var(--border);
-}
+  #statusText { font-size: 13px; color: var(--muted); }
 
-.status-left { display: flex; align-items: center; gap: 8px; }
+  .container { padding: 16px; max-width: 480px; margin: 0 auto; }
 
-.status-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--muted);
-  position: relative;
-}
+  .section {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+  }
 
-.status-dot.running {
-  background: var(--green);
-  box-shadow: 0 0 12px var(--green);
-  animation: dotPulse 1.5s infinite;
-}
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
 
-.status-dot.running::after {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  border: 1px solid var(--green);
-  animation: dotRing 1.5s infinite;
-}
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    margin-top: 12px;
+  }
 
-@keyframes dotPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-@keyframes dotRing { 0%{transform:scale(1);opacity:1} 100%{transform:scale(2);opacity:0} }
+  label:first-of-type { margin-top: 0; }
 
-#statusText { font-size: 12px; color: var(--muted); }
-.status-time { font-family: 'Orbitron', monospace; font-size: 11px; color: var(--accent); }
+  input, select {
+    width: 100%;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'Space Mono', monospace;
+    outline: none;
+    transition: border-color 0.2s;
+  }
 
-/* 容器 */
-.container { padding: 12px; max-width: 480px; margin: 0 auto; position: relative; z-index: 1; }
+  input:focus, select:focus {
+    border-color: var(--accent);
+  }
 
-/* 统计卡片 */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
-}
+  input::placeholder { color: var(--muted); font-size: 12px; }
 
-.stat-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 8px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.3s;
-}
+  .toggle-key {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+  }
 
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--accent), var(--accent2));
-  opacity: 0.5;
-}
+  .toggle-key input { flex: 1; margin-top: 0; }
 
-.stat-val {
-  font-family: 'Orbitron', monospace;
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--accent);
-  line-height: 1;
-}
+  .eye-btn {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
 
-.stat-val.green { color: var(--green); text-shadow: 0 0 20px rgba(0,255,136,0.5); }
-.stat-val.red { color: var(--red); text-shadow: 0 0 20px rgba(255,51,102,0.5); }
+  .params-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
 
-.stat-label {
-  font-size: 10px;
-  color: var(--muted);
-  margin-top: 6px;
-  letter-spacing: 1px;
-}
+  .params-grid label { margin-top: 0; }
 
-/* 持仓卡片 */
-.position-card {
-  background: linear-gradient(135deg, rgba(0,255,136,0.08), rgba(0,212,255,0.05));
-  border: 1px solid rgba(0,255,136,0.3);
-  border-radius: 14px;
-  padding: 16px;
-  margin-bottom: 12px;
-  display: none;
-  position: relative;
-  overflow: hidden;
-}
+  .btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: 12px;
+    border: none;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Noto Sans SC', sans-serif;
+    letter-spacing: 1px;
+  }
 
-.position-card.show { display: block; }
-.position-card.short {
-  background: linear-gradient(135deg, rgba(255,51,102,0.08), rgba(255,100,50,0.05));
-  border-color: rgba(255,51,102,0.3);
-}
+  .btn-start {
+    background: var(--accent);
+    color: #0a0e1a;
+  }
 
-.pos-header { display: flex; justify-content: space-between; align-items: center; }
-.pos-symbol { font-family: 'Orbitron', monospace; font-size: 16px; font-weight: 700; color: var(--text); }
-.pos-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 700; }
-.pos-badge.long { background: rgba(0,255,136,0.2); color: var(--green); border: 1px solid rgba(0,255,136,0.4); }
-.pos-badge.short { background: rgba(255,51,102,0.2); color: var(--red); border: 1px solid rgba(255,51,102,0.4); }
+  .btn-start:hover { background: #d97706; transform: translateY(-1px); }
+  .btn-start:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
 
-.pos-pnl {
-  font-family: 'Orbitron', monospace;
-  font-size: 28px;
-  font-weight: 900;
-  margin-top: 10px;
-}
+  .btn-stop {
+    background: var(--red);
+    color: white;
+  }
 
-.pos-pnl.positive { color: var(--green); text-shadow: 0 0 30px rgba(0,255,136,0.4); }
-.pos-pnl.negative { color: var(--red); text-shadow: 0 0 30px rgba(255,51,102,0.4); }
+  .btn-stop:hover { background: #dc2626; }
 
-/* 卡片 */
-.section {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 16px;
-  margin-bottom: 10px;
-  position: relative;
-  overflow: hidden;
-}
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
 
-.section-title {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+  .stat-card {
+    background: var(--card2);
+    border-radius: 10px;
+    padding: 12px 8px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
 
-.section-title::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, var(--border), transparent);
-}
+  .stat-val {
+    font-size: 20px;
+    font-weight: 900;
+    font-family: 'Space Mono', monospace;
+    color: var(--accent);
+  }
 
-/* 输入框 */
-label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; margin-top: 14px; letter-spacing: 1px; text-transform: uppercase; }
-label:first-of-type { margin-top: 0; }
+  .stat-val.green { color: var(--green); }
+  .stat-val.red { color: var(--red); }
 
-.input-wrap { position: relative; }
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+    letter-spacing: 1px;
+  }
 
-input, select {
-  width: 100%;
-  background: var(--card2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 14px;
-  color: var(--text);
-  font-size: 13px;
-  font-family: 'Noto Sans SC', sans-serif;
-  outline: none;
-  transition: all 0.2s;
-  appearance: none;
-}
+  .log-box {
+    background: #050810;
+    border-radius: 10px;
+    padding: 12px;
+    height: 260px;
+    overflow-y: auto;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    line-height: 1.8;
+    border: 1px solid var(--border);
+  }
 
-input:focus, select:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(0,212,255,0.1);
-}
+  .log-box::-webkit-scrollbar { width: 4px; }
+  .log-box::-webkit-scrollbar-track { background: transparent; }
+  .log-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-input::placeholder { color: var(--muted); font-size: 12px; }
+  .log-line { color: var(--muted); }
+  .log-line.info { color: var(--text); }
+  .log-line.success { color: var(--green); }
+  .log-line.error { color: var(--red); }
+  .log-line.warn { color: var(--accent); }
+  .log-line.trade { color: var(--blue); }
 
-.key-row { display: flex; gap: 8px; align-items: center; }
-.key-row input { flex: 1; }
+  .coin-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
 
-.eye-btn {
-  background: var(--card2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 14px;
-  cursor: pointer;
-  font-size: 14px;
-  flex-shrink: 0;
-  transition: border-color 0.2s;
-  color: var(--muted);
-}
-.eye-btn:hover { border-color: var(--accent); }
+  .badge {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
 
-/* 参数网格 */
-.params-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.params-grid label { margin-top: 0; }
+  .badge.active {
+    background: var(--accent);
+    color: #0a0e1a;
+    border-color: var(--accent);
+    font-weight: 700;
+  }
 
-/* 币种选择 */
-.coin-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .warning-box {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 12px;
+    color: #fca5a5;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
 
-.coin-badge {
-  background: var(--card2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 14px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  user-select: none;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
+  .current-trade {
+    background: var(--card2);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-left: 3px solid var(--green);
+    display: none;
+  }
 
-.coin-badge.active {
-  background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(123,47,255,0.15));
-  border-color: var(--accent);
-  color: var(--accent);
-  font-weight: 700;
-  box-shadow: 0 0 12px rgba(0,212,255,0.15);
-}
-
-/* 按钮 */
-.btn {
-  width: 100%;
-  padding: 16px;
-  border-radius: 12px;
-  border: none;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-family: 'Noto Sans SC', sans-serif;
-  letter-spacing: 2px;
-  position: relative;
-  overflow: hidden;
-}
-
-.btn-start {
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: white;
-  box-shadow: 0 4px 24px rgba(0,212,255,0.3);
-}
-
-.btn-start:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(0,212,255,0.4);
-}
-
-.btn-start::before {
-  content: '';
-  position: absolute;
-  top: 0; left: -100%;
-  width: 100%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-  animation: shine 2s infinite;
-}
-
-@keyframes shine { 0%{left:-100%} 100%{left:100%} }
-
-.btn-stop {
-  background: linear-gradient(135deg, #ff3366, #ff6b35);
-  color: white;
-  box-shadow: 0 4px 24px rgba(255,51,102,0.3);
-}
-
-.btn-stop:hover { transform: translateY(-2px); }
-
-/* 日志 */
-.log-box {
-  background: #020408;
-  border-radius: 10px;
-  padding: 12px;
-  height: 260px;
-  overflow-y: auto;
-  font-family: 'Orbitron', monospace;
-  font-size: 10px;
-  line-height: 2;
-  border: 1px solid var(--border);
-}
-
-.log-box::-webkit-scrollbar { width: 3px; }
-.log-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-.log-info { color: #8090a0; }
-.log-success { color: var(--green); }
-.log-error { color: var(--red); }
-.log-warn { color: var(--gold); }
-.log-trade { color: var(--accent); }
-
-/* 警告 */
-.warning-box {
-  background: rgba(255,51,102,0.08);
-  border: 1px solid rgba(255,51,102,0.25);
-  border-radius: 10px;
-  padding: 12px 14px;
-  font-size: 11px;
-  color: rgba(255,150,150,0.9);
-  line-height: 1.7;
-  margin-bottom: 12px;
-}
-
-/* 扫描动画 */
-.scanning {
-  display: inline-block;
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-  animation: scan 0.6s infinite alternate;
-  margin-right: 6px;
-}
-@keyframes scan { 0%{opacity:0.3} 100%{opacity:1} }
+  .current-trade.show { display: block; }
+  .current-trade .symbol { font-weight: 700; font-size: 15px; color: var(--text); }
+  .current-trade .direction { font-size: 12px; margin-top: 2px; }
+  .current-trade .direction.long { color: var(--green); }
+  .current-trade .direction.short { color: var(--red); }
+  .current-trade .pnl { font-size: 18px; font-weight: 900; font-family: 'Space Mono', monospace; margin-top: 6px; }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="logo">OKX · AI TRADER</div>
-  <div class="logo-sub">GLM Powered · Auto Scan · High Leverage</div>
+  <h1>⚡ OKX AI 交易机器人</h1>
+  <p>智谱GLM驱动 · 自动扫描小币 · 20倍杠杆</p>
 </div>
 
 <div class="status-bar">
-  <div class="status-left">
-    <div class="status-dot" id="statusDot"></div>
-    <span id="statusText">系统待机</span>
-  </div>
-  <div class="status-time" id="clockEl">--:--:--</div>
+  <div class="status-dot" id="statusDot"></div>
+  <span id="statusText">未启动</span>
 </div>
 
 <div class="container">
@@ -437,363 +319,468 @@ input::placeholder { color: var(--muted); font-size: 12px; }
     </div>
   </div>
 
-  <!-- 持仓卡片 -->
-  <div class="position-card" id="posCard">
-    <div class="pos-header">
-      <div class="pos-symbol" id="posSymbol">--</div>
-      <div class="pos-badge long" id="posBadge">LONG</div>
-    </div>
-    <div class="pos-pnl positive" id="posPnl">+0.00%</div>
+  <!-- 当前持仓 -->
+  <div class="current-trade" id="currentTrade">
+    <div class="symbol" id="tradeSymbol">--</div>
+    <div class="direction" id="tradeDirection">--</div>
+    <div class="pnl" id="tradePnl">--</div>
   </div>
 
-  <!-- Keys -->
+  <!-- Keys配置 -->
   <div class="section">
-    <div class="section-title">🔑 API 密钥</div>
+    <div class="section-title">🔑 API 配置</div>
 
-    <label>智谱 GLM Key</label>
-    <div class="key-row">
-      <input type="password" id="glmKey" placeholder="GLM API Key">
+    <label>智谱 GLM API Key</label>
+    <div class="toggle-key">
+      <input type="password" id="glmKey" placeholder="粘贴你的GLM Key">
       <button class="eye-btn" onclick="toggleKey('glmKey')">👁</button>
     </div>
 
     <label>OKX API Key</label>
-    <div class="key-row">
+    <div class="toggle-key">
       <input type="password" id="okxKey" placeholder="OKX API Key">
       <button class="eye-btn" onclick="toggleKey('okxKey')">👁</button>
     </div>
 
-    <label>OKX Secret</label>
-    <div class="key-row">
+    <label>OKX Secret Key</label>
+    <div class="toggle-key">
       <input type="password" id="okxSecret" placeholder="OKX Secret Key">
       <button class="eye-btn" onclick="toggleKey('okxSecret')">👁</button>
     </div>
 
-    <label>Passphrase</label>
-    <div class="key-row">
+    <label>OKX Passphrase</label>
+    <div class="toggle-key">
       <input type="password" id="okxPass" placeholder="OKX Passphrase">
       <button class="eye-btn" onclick="toggleKey('okxPass')">👁</button>
     </div>
   </div>
 
-  <!-- 参数 -->
+  <!-- 交易参数 -->
   <div class="section">
-    <div class="section-title">⚙️ 策略参数</div>
+    <div class="section-title">⚙️ 交易参数</div>
+
     <div class="params-grid">
       <div>
         <label>杠杆倍数</label>
         <select id="leverage">
-          <option value="5">5x 稳健</option>
-          <option value="10">10x 进取</option>
-          <option value="20" selected>20x 激进</option>
-          <option value="50">50x 极限</option>
+          <option value="5">5x</option>
+          <option value="10">10x</option>
+          <option value="20" selected>20x</option>
+          <option value="50">50x</option>
         </select>
       </div>
       <div>
-        <label>每次金额 (U)</label>
+        <label>每次金额(U)</label>
         <input type="number" id="amount" value="100" min="10" max="500">
       </div>
       <div>
-        <label>止损 (%)</label>
+        <label>止损(%)</label>
         <input type="number" id="stopLoss" value="40" min="10" max="80">
       </div>
       <div>
-        <label>止盈 (%)</label>
+        <label>止盈(%)</label>
         <input type="number" id="takeProfit" value="100" min="20" max="500">
       </div>
     </div>
 
-    <label>分析频率</label>
+    <label>扫描间隔</label>
     <select id="interval">
-      <option value="60">每1分钟 · 极速</option>
-      <option value="180">每3分钟 · 快速</option>
-      <option value="300" selected>每5分钟 · 标准</option>
+      <option value="60">1分钟（激进）</option>
+      <option value="180">3分钟</option>
+      <option value="300" selected>5分钟（推荐）</option>
+      <option value="600">10分钟（保守）</option>
     </select>
 
-    <label>扫描币种</label>
-    <div class="coin-grid">
-      <span class="coin-badge active" data-coin="PEPE-USDT-SWAP">🐸 PEPE</span>
-      <span class="coin-badge active" data-coin="WIF-USDT-SWAP">🐕 WIF</span>
-      <span class="coin-badge active" data-coin="DOGE-USDT-SWAP">🐶 DOGE</span>
-      <span class="coin-badge active" data-coin="BONK-USDT-SWAP">🔥 BONK</span>
-      <span class="coin-badge active" data-coin="SHIB-USDT-SWAP">💎 SHIB</span>
-      <span class="coin-badge active" data-coin="FLOKI-USDT-SWAP">🚀 FLOKI</span>
+    <label>候选币种（可多选）</label>
+    <div class="coin-badges" id="coinBadges">
+      <span class="badge active" data-coin="PEPE-USDT-SWAP">🐸 PEPE</span>
+      <span class="badge active" data-coin="WIF-USDT-SWAP">🐕 WIF</span>
+      <span class="badge active" data-coin="DOGE-USDT-SWAP">🐶 DOGE</span>
+      <span class="badge active" data-coin="BONK-USDT-SWAP">🔥 BONK</span>
+      <span class="badge active" data-coin="SHIB-USDT-SWAP">💎 SHIB</span>
+      <span class="badge active" data-coin="FLOKI-USDT-SWAP">🚀 FLOKI</span>
     </div>
   </div>
 
+  <!-- 风险提示 -->
   <div class="warning-box">
-    ⚠️ 所有Key仅在您的设备本地运行，不经过任何服务器。合约交易风险极高，请在充分了解风险后使用。
+    ⚠️ <strong>风险提示：</strong>加密货币合约交易风险极高，20倍杠杆可能导致快速亏损。Key仅在您本地浏览器运行，不上传任何服务器。请确保您了解并接受风险后再启动。
   </div>
 
-  <button class="btn btn-start" id="btnStart" onclick="startTrading()">⚡ 启动 AI 自动交易</button>
+  <!-- 按钮 -->
+  <button class="btn btn-start" id="btnStart" onclick="startTrading()">🚀 启动 AI 自动交易</button>
   <button class="btn btn-stop" id="btnStop" onclick="stopTrading()" style="display:none;margin-top:10px">⛔ 停止交易</button>
 
+  <!-- 日志 -->
   <div class="section" style="margin-top:12px">
-    <div class="section-title">📡 实时日志</div>
+    <div class="section-title">📋 实时日志</div>
     <div class="log-box" id="logBox">
-      <div class="log-info">[ SYSTEM ] 等待启动...</div>
+      <div class="log-line">等待启动...</div>
     </div>
   </div>
 
 </div>
 
 <script>
-let running=false,timer=null,rounds=0,trades=0;
-let curPos=null,curSym=null;
+let running = false;
+let timer = null;
+let rounds = 0;
+let trades = 0;
+let currentPosition = null;
+let currentSymbol = null;
+let entryPrice = 0;
 
-// 时钟
-setInterval(()=>{
-  document.getElementById('clockEl').textContent = new Date().toLocaleTimeString('zh-CN');
-},1000);
-
-document.querySelectorAll('.coin-badge').forEach(b=>{
-  b.addEventListener('click',()=>b.classList.toggle('active'));
+// 币种选择
+document.querySelectorAll('.badge').forEach(b => {
+  b.addEventListener('click', () => b.classList.toggle('active'));
 });
 
-function toggleKey(id){
-  const el=document.getElementById(id);
-  el.type=el.type==='password'?'text':'password';
+function toggleKey(id) {
+  const el = document.getElementById(id);
+  el.type = el.type === 'password' ? 'text' : 'password';
 }
 
-function log(msg,type='info'){
-  const box=document.getElementById('logBox');
-  const now=new Date().toLocaleTimeString('zh-CN');
-  const div=document.createElement('div');
-  div.className='log-'+type;
-  div.textContent='['+now+'] '+msg;
+function log(msg, type = 'info') {
+  const box = document.getElementById('logBox');
+  const now = new Date().toLocaleTimeString('zh-CN');
+  const div = document.createElement('div');
+  div.className = `log-line ${type}`;
+  div.textContent = `[${now}] ${msg}`;
   box.appendChild(div);
-  box.scrollTop=box.scrollHeight;
+  box.scrollTop = box.scrollHeight;
 }
 
-function setStatus(text,state){
-  document.getElementById('statusText').textContent=text;
-  document.getElementById('statusDot').className='status-dot '+(state||'');
+function setStatus(text, state) {
+  document.getElementById('statusText').textContent = text;
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot ' + (state || '');
 }
 
-function updateStats(){
-  document.getElementById('statRounds').textContent=rounds;
-  document.getElementById('statTrades').textContent=trades;
+function updateStats() {
+  document.getElementById('statRounds').textContent = rounds;
+  document.getElementById('statTrades').textContent = trades;
 }
 
-function getCoins(){
-  return Array.from(document.querySelectorAll('.coin-badge.active')).map(b=>b.dataset.coin);
+function getSelectedCoins() {
+  return Array.from(document.querySelectorAll('.badge.active')).map(b => b.dataset.coin);
 }
 
-async function getTicker(symbol){
-  try{
-    const r=await fetch('https://www.okx.com/api/v5/market/ticker?instId='+symbol);
-    const d=await r.json();
-    if(d.code==='0'&&d.data.length){
-      const t=d.data[0];
-      const price=parseFloat(t.last);
-      const open24=parseFloat(t.sodUtc8)||price;
-      return{symbol,price,change_pct:(price-open24)/open24*100,high:parseFloat(t.high24h),low:parseFloat(t.low24h)};
+// 获取行情
+async function getTicker(symbol) {
+  try {
+    const r = await fetch(`https://www.okx.com/api/v5/market/ticker?instId=${symbol}`);
+    const d = await r.json();
+    if (d.code === '0' && d.data.length) {
+      const t = d.data[0];
+      const price = parseFloat(t.last);
+      const open24 = parseFloat(t.sodUtc8) || price;
+      return {
+        symbol,
+        price,
+        change_pct: (price - open24) / open24 * 100,
+        high: parseFloat(t.high24h),
+        low: parseFloat(t.low24h),
+      };
     }
-  }catch(e){}
+  } catch(e) {}
   return null;
 }
 
-async function getKlines(symbol){
-  try{
-    const r=await fetch('https://www.okx.com/api/v5/market/candles?instId='+symbol+'&bar=15m&limit=10');
-    const d=await r.json();
-    if(d.code==='0')return d.data.reverse().map(c=>({open:parseFloat(c[1]),high:parseFloat(c[2]),low:parseFloat(c[3]),close:parseFloat(c[4])}));
-  }catch(e){}
-  return[];
+// 获取K线
+async function getKlines(symbol) {
+  try {
+    const r = await fetch(`https://www.okx.com/api/v5/market/candles?instId=${symbol}&bar=15m&limit=10`);
+    const d = await r.json();
+    if (d.code === '0') {
+      return d.data.reverse().map(c => ({
+        open: parseFloat(c[1]), high: parseFloat(c[2]),
+        low: parseFloat(c[3]), close: parseFloat(c[4])
+      }));
+    }
+  } catch(e) {}
+  return [];
 }
 
-async function pickBest(){
-  const coins=getCoins();
-  if(!coins.length)return null;
-  log('SCANNING MARKETS...','warn');
-  let best=null,score=0;
-  for(const c of coins){
-    const t=await getTicker(c);
-    if(t){
-      const s=Math.abs(t.change_pct);
-      log(c.split('-')[0]+': '+(t.change_pct>0?'+':'')+t.change_pct.toFixed(2)+'%','info');
-      if(s>score){score=s;best=t;}
+// 选最强势币
+async function pickBestCoin() {
+  const coins = getSelectedCoins();
+  if (!coins.length) return null;
+  log('🔍 扫描小币...', 'info');
+  let best = null, bestScore = 0;
+  for (const coin of coins) {
+    const t = await getTicker(coin);
+    if (t) {
+      const score = Math.abs(t.change_pct);
+      log(`  ${coin.split('-')[0]}: ${t.change_pct > 0 ? '+' : ''}${t.change_pct.toFixed(2)}%`, 'log-line');
+      if (score > bestScore) { bestScore = score; best = t; }
     }
   }
-  if(best)log('TARGET: '+best.symbol.split('-')[0]+' | '+(best.change_pct>0?'+':'')+best.change_pct.toFixed(2)+'%','trade');
+  if (best) log(`🎯 选中: ${best.symbol.split('-')[0]} | ${best.change_pct > 0 ? '+' : ''}${best.change_pct.toFixed(2)}%`, 'warn');
   return best;
 }
 
-async function askGLM(market,klines){
-  const key=document.getElementById('glmKey').value.trim();
-  if(!key){log('GLM KEY MISSING','error');return'LONG';}// 没key默认做多
+// GLM分析
+async function askGLM(market, klines) {
+  const glmKey = document.getElementById('glmKey').value.trim();
+  if (!glmKey) { log('❌ GLM Key未填写', 'error'); return 'WAIT'; }
 
-  const ktext=klines.slice(-5).map((k,i)=>'K'+(i+1)+': O='+k.open.toFixed(6)+' C='+k.close.toFixed(6)).join(' | ');
-  const prompt='You are a crypto trader. Symbol:'+market.symbol+' Price:'+market.price.toFixed(6)+' 24h:'+market.change_pct.toFixed(2)+'% Klines:'+ktext+'. Reply ONLY: Decision: LONG or SHORT or WAIT\nReason: one sentence';
+  const klineText = klines.slice(-5).map((k, i) =>
+    `K${i+1}: 开${k.open.toFixed(6)} 收${k.close.toFixed(6)}`
+  ).join('\n');
 
-  try{
-    const r=await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions',{
-      method:'POST',
-      headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json'},
-      body:JSON.stringify({model:'glm-4-flash',messages:[{role:'user',content:prompt}],max_tokens:80,temperature:0.3})
+  const prompt = `You are a crypto trading expert. Analyze and give a clear signal.
+Symbol: ${market.symbol} Price: ${market.price.toFixed(6)} USDT 24h Change: ${market.change_pct.toFixed(2)}%
+Recent candles: ${klineText}
+Trading competition, 20x leverage, maximize ROI in 1.5 days.
+Reply ONLY in this exact format:
+Decision: LONG or SHORT or WAIT
+Reason: one sentence`;
+
+  try {
+    const r = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${glmKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'glm-4-flash',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 100,
+        temperature: 0.3
+      })
     });
-    const d=await r.json();
-    const reply=(d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'';
-    log('GLM: '+reply.substring(0,60),'trade');
-    if(reply.toUpperCase().includes('SHORT'))return'SHORT';
-    if(reply.toUpperCase().includes('WAIT'))return'WAIT';
-    return'LONG';
-  }catch(e){
-    log('GLM ERROR: '+e.message,'error');
-    // GLM失败时根据涨跌方向自动决策
-    return market.change_pct>0?'LONG':'SHORT';
+    const d = await r.json();
+    const reply = d.choices?.[0]?.message?.content || '';
+    log(`🤖 GLM: ${reply.replace(/\n/g, ' ')}`, 'trade');
+
+    // 直接判断，不管信心高低，只要说LONG/SHORT就执行
+    if (/LONG/i.test(reply)) return 'LONG';
+    if (/SHORT/i.test(reply)) return 'SHORT';
+    if (/做多|买入|上涨|涨|多头/i.test(reply)) return 'LONG';
+    if (/做空|卖出|下跌|跌|空头/i.test(reply)) return 'SHORT';
+    return 'WAIT';
+  } catch(e) {
+    log(`❌ GLM失败: ${e.message}`, 'error');
+    return 'WAIT';
   }
 }
 
-async function okxSign(method,path,body=''){
-  const ts=new Date().toISOString().replace(/\.\d{3}Z/,'.000Z');
-  const msg=ts+method+path+body;
-  const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(document.getElementById('okxSecret').value.trim()),{name:'HMAC',hash:'SHA-256'},false,['sign']);
-  const sig=await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(msg));
-  const sign=btoa(String.fromCharCode(...new Uint8Array(sig)));
-  return{ts,sign};
+// OKX签名
+async function okxSign(method, path, body = '') {
+  const ts = new Date().toISOString().replace(/\.\d{3}Z/, '.000Z');
+  const msg = ts + method + path + body;
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(document.getElementById('okxSecret').value.trim()),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(msg));
+  const sign = btoa(String.fromCharCode(...new Uint8Array(sig)));
+  return { ts, sign };
 }
 
-async function okxReq(method,path,body=null){
-  const bodyStr=body?JSON.stringify(body):'';
-  const{ts,sign}=await okxSign(method,path,bodyStr);
-  try{
-    const r=await fetch('https://www.okx.com'+path,{
+async function okxRequest(method, path, body = null) {
+  const bodyStr = body ? JSON.stringify(body) : '';
+  const { ts, sign } = await okxSign(method, path, bodyStr);
+  try {
+    const r = await fetch('https://www.okx.com' + path, {
       method,
-      headers:{
-        'OK-ACCESS-KEY':document.getElementById('okxKey').value.trim(),
-        'OK-ACCESS-SIGN':sign,
-        'OK-ACCESS-TIMESTAMP':ts,
-        'OK-ACCESS-PASSPHRASE':document.getElementById('okxPass').value.trim(),
-        'Content-Type':'application/json'
+      headers: {
+        'OK-ACCESS-KEY': document.getElementById('okxKey').value.trim(),
+        'OK-ACCESS-SIGN': sign,
+        'OK-ACCESS-TIMESTAMP': ts,
+        'OK-ACCESS-PASSPHRASE': document.getElementById('okxPass').value.trim(),
+        'Content-Type': 'application/json'
       },
-      body:bodyStr||undefined
+      body: bodyStr || undefined
     });
     return await r.json();
-  }catch(e){return{code:'-1',msg:e.message};}
+  } catch(e) {
+    return { code: '-1', msg: e.message };
+  }
 }
 
-async function placeOrder(symbol,side,price){
-  const amount=parseInt(document.getElementById('amount').value);
-  const lever=document.getElementById('leverage').value;
-  await okxReq('POST','/api/v5/account/set-leverage',{instId:symbol,lever:String(lever),mgnMode:'cross'});
-  let sz=Math.max(1,Math.floor(amount/price/10));
-  if(['PEPE','BONK','SHIB','FLOKI'].some(x=>symbol.includes(x)))sz=Math.max(1,Math.floor(amount/price/100));
-  const result=await okxReq('POST','/api/v5/trade/order',{
-    instId:symbol,tdMode:'cross',
-    side:side==='LONG'?'buy':'sell',
-    posSide:side==='LONG'?'long':'short',
-    ordType:'market',sz:String(sz)
+async function placeOrder(symbol, side, price) {
+  const amount = parseInt(document.getElementById('amount').value);
+  const lever = document.getElementById('leverage').value;
+
+  // 设置杠杆
+  await okxRequest('POST', '/api/v5/account/set-leverage', {
+    instId: symbol, lever: String(lever), mgnMode: 'cross'
   });
-  if(result.code==='0'){
-    log('ORDER OK: '+side+' '+symbol.split('-')[0]+' x'+lever,'success');
-    trades++;updateStats();
-    // 更新持仓卡片
-    document.getElementById('posCard').className='position-card show'+(side==='SHORT'?' short':'');
-    document.getElementById('posSymbol').textContent=symbol.split('-')[0]+' x'+lever;
-    document.getElementById('posBadge').textContent=side;
-    document.getElementById('posBadge').className='pos-badge '+(side==='LONG'?'long':'short');
-    document.getElementById('posPnl').textContent='+0.00%';
+
+  // 计算张数
+  let sz = Math.max(1, Math.floor(amount / price / 10));
+  if (['PEPE', 'BONK', 'SHIB', 'FLOKI'].some(x => symbol.includes(x))) {
+    sz = Math.max(1, Math.floor(amount / price / 100));
+  }
+
+  const result = await okxRequest('POST', '/api/v5/trade/order', {
+    instId: symbol,
+    tdMode: 'cross',
+    side: side === 'LONG' ? 'buy' : 'sell',
+    posSide: side === 'LONG' ? 'long' : 'short',
+    ordType: 'market',
+    sz: String(sz)
+  });
+
+  if (result.code === '0') {
+    log(`✅ 开仓成功! ${side} ${symbol.split('-')[0]} ${lever}x`, 'success');
+    trades++;
+    updateStats();
     return true;
-  }else{
-    log('ORDER FAIL: '+result.msg,'error');
+  } else {
+    log(`❌ 开仓失败: ${result.msg}`, 'error');
     return false;
   }
 }
 
-async function closePos(symbol){
-  const r=await okxReq('POST','/api/v5/trade/close-position',{instId:symbol,mgnMode:'cross',autoCxl:true});
-  if(r.code==='0'){log('POSITION CLOSED','success');document.getElementById('posCard').classList.remove('show');}
+async function closePosition(symbol) {
+  const result = await okxRequest('POST', '/api/v5/trade/close-position', {
+    instId: symbol, mgnMode: 'cross', autoCxl: true
+  });
+  if (result.code === '0') {
+    log(`✅ 平仓成功`, 'success');
+  }
 }
 
-async function getPnl(symbol){
-  const r=await okxReq('GET','/api/v5/account/positions?instId='+symbol);
-  if(r.data&&r.data.length)return parseFloat(r.data[0].uplRatio||0);
+async function getPnl(symbol) {
+  const r = await okxRequest('GET', `/api/v5/account/positions?instId=${symbol}`);
+  if (r.data && r.data.length) {
+    return parseFloat(r.data[0].uplRatio || 0);
+  }
   return null;
 }
 
-async function loop(){
-  if(!running)return;
-  rounds++;updateStats();
-  log('---- ROUND '+rounds+' ----','warn');
+// 主循环
+async function tradingLoop() {
+  if (!running) return;
+  rounds++;
+  updateStats();
+  log(`\n──── 第${rounds}轮 ────`, 'warn');
 
-  const sl=parseInt(document.getElementById('stopLoss').value)/100;
-  const tp=parseInt(document.getElementById('takeProfit').value)/100;
+  const sl = parseInt(document.getElementById('stopLoss').value) / 100;
+  const tp = parseInt(document.getElementById('takeProfit').value) / 100;
 
-  if(curPos&&curSym){
-    const pnl=await getPnl(curSym);
-    if(pnl!==null){
-      const pct=(pnl*100).toFixed(2);
-      const pnlEl=document.getElementById('statPnl');
-      pnlEl.textContent=(pnl>0?'+':'')+pct+'%';
-      pnlEl.className='stat-val '+(pnl>0?'green':'red');
-      const posPnl=document.getElementById('posPnl');
-      posPnl.textContent=(pnl>0?'+':'')+pct+'%';
-      posPnl.className='pos-pnl '+(pnl>0?'positive':'negative');
-      log('PNL: '+(pnl>0?'+':'')+pct+'%',pnl>0?'success':'error');
-      if(pnl<=-sl){log('STOP LOSS HIT!','error');await closePos(curSym);curPos=null;curSym=null;schedNext();return;}
-      if(pnl>=tp){log('TAKE PROFIT HIT!','success');await closePos(curSym);curPos=null;curSym=null;schedNext();return;}
+  // 检查持仓
+  if (currentPosition && currentSymbol) {
+    const pnl = await getPnl(currentSymbol);
+    if (pnl !== null) {
+      const pnlPct = (pnl * 100).toFixed(2);
+      log(`持仓盈亏: ${pnl > 0 ? '+' : ''}${pnlPct}%`, pnl > 0 ? 'success' : 'error');
+
+      // 更新显示
+      const pnlEl = document.getElementById('statPnl');
+      pnlEl.textContent = (pnl > 0 ? '+' : '') + pnlPct + '%';
+      pnlEl.className = 'stat-val ' + (pnl > 0 ? 'green' : 'red');
+
+      document.getElementById('tradePnl').textContent = (pnl > 0 ? '+' : '') + pnlPct + '%';
+      document.getElementById('tradePnl').style.color = pnl > 0 ? 'var(--green)' : 'var(--red)';
+
+      if (pnl <= -sl) {
+        log(`⚠️ 触发止损! 亏损${pnlPct}%`, 'error');
+        await closePosition(currentSymbol);
+        currentPosition = null; currentSymbol = null;
+        document.getElementById('currentTrade').classList.remove('show');
+        scheduleNext(); return;
+      }
+      if (pnl >= tp) {
+        log(`🎉 触发止盈! 盈利${pnlPct}%`, 'success');
+        await closePosition(currentSymbol);
+        currentPosition = null; currentSymbol = null;
+        document.getElementById('currentTrade').classList.remove('show');
+        scheduleNext(); return;
+      }
     }
   }
 
-  const best=await pickBest();
-  if(!best){schedNext();return;}
+  // 选最强币
+  const best = await pickBestCoin();
+  if (!best) { scheduleNext(); return; }
 
-  if(curPos&&curSym&&curSym!==best.symbol){
-    log('SWITCHING TARGET','warn');
-    await closePos(curSym);curPos=null;curSym=null;
-    await new Promise(r=>setTimeout(r,2000));
+  // 换币
+  if (currentPosition && currentSymbol && currentSymbol !== best.symbol) {
+    log(`🔄 换目标币`, 'warn');
+    await closePosition(currentSymbol);
+    currentPosition = null; currentSymbol = null;
+    await new Promise(r => setTimeout(r, 2000));
   }
 
-  const klines=await getKlines(best.symbol);
-  const decision=await askGLM(best,klines);
-  log('DECISION: '+decision,decision==='WAIT'?'info':'trade');
+  // GLM分析
+  const klines = await getKlines(best.symbol);
+  const decision = await askGLM(best, klines);
+  log(`决策: ${decision}`, decision === 'WAIT' ? 'info' : 'trade');
 
-  if(!curPos){
-    if(decision!=='WAIT'){
-      const ok=await placeOrder(best.symbol,decision,best.price);
-      if(ok){curPos=decision;curSym=best.symbol;}
-    }else{log('WAITING FOR SIGNAL...','info');}
-  }else{
-    const opp=curPos==='LONG'?'SHORT':'LONG';
-    if(decision===opp){
-      log('REVERSING POSITION','warn');
-      await closePos(curSym);
-      await new Promise(r=>setTimeout(r,2000));
-      const ok=await placeOrder(best.symbol,opp,best.price);
-      if(ok){curPos=opp;curSym=best.symbol;}
-    }else{log('HOLDING '+curPos,'info');}
+  // 执行
+  if (!currentPosition) {
+    if (decision === 'LONG' || decision === 'SHORT') {
+      const ok = await placeOrder(best.symbol, decision, best.price);
+      if (ok) {
+        currentPosition = decision;
+        currentSymbol = best.symbol;
+        entryPrice = best.price;
+
+        // 显示持仓卡片
+        document.getElementById('currentTrade').classList.add('show');
+        document.getElementById('tradeSymbol').textContent = best.symbol.split('-')[0];
+        document.getElementById('tradeDirection').textContent = decision === 'LONG' ? '📈 做多' : '📉 做空';
+        document.getElementById('tradeDirection').className = 'direction ' + (decision === 'LONG' ? 'long' : 'short');
+        document.getElementById('tradePnl').textContent = '0.00%';
+      }
+    } else {
+      log('⏸ 观望', 'info');
+    }
+  } else {
+    const opp = currentPosition === 'LONG' ? 'SHORT' : 'LONG';
+    if (decision === opp) {
+      log('🔄 反手信号!', 'warn');
+      await closePosition(currentSymbol);
+      await new Promise(r => setTimeout(r, 2000));
+      const ok = await placeOrder(best.symbol, opp, best.price);
+      if (ok) { currentPosition = opp; currentSymbol = best.symbol; }
+    } else {
+      log(`⏳ 继续持有 ${currentPosition}`, 'info');
+    }
   }
-  schedNext();
+
+  scheduleNext();
 }
 
-function schedNext(){
-  if(!running)return;
-  const iv=parseInt(document.getElementById('interval').value);
-  log('NEXT SCAN IN '+iv+'s...','info');
-  timer=setTimeout(loop,iv*1000);
+function scheduleNext() {
+  if (!running) return;
+  const interval = parseInt(document.getElementById('interval').value);
+  log(`⏰ ${interval/60}分钟后下一轮...`, 'info');
+  timer = setTimeout(tradingLoop, interval * 1000);
 }
 
-function startTrading(){
-  const keys=['glmKey','okxKey','okxSecret','okxPass'];
-  const missing=keys.filter(k=>!document.getElementById(k).value.trim());
-  if(missing.length>0){alert('请填写所有API Key！');return;}
-  running=true;rounds=0;trades=0;
-  document.getElementById('logBox').innerHTML='';
-  document.getElementById('btnStart').style.display='none';
-  document.getElementById('btnStop').style.display='block';
-  setStatus('AI运行中 · 自动交易','running');
-  log('SYSTEM ONLINE','success');
-  log('LEVERAGE: '+document.getElementById('leverage').value+'x | AMOUNT: '+document.getElementById('amount').value+'U','info');
-  loop();
+function startTrading() {
+  if (!document.getElementById('glmKey').value.trim() ||
+      !document.getElementById('okxKey').value.trim() ||
+      !document.getElementById('okxSecret').value.trim() ||
+      !document.getElementById('okxPass').value.trim()) {
+    alert('请先填写所有API Key！');
+    return;
+  }
+
+  running = true;
+  rounds = 0; trades = 0;
+  document.getElementById('logBox').innerHTML = '';
+  document.getElementById('btnStart').style.display = 'none';
+  document.getElementById('btnStop').style.display = 'block';
+  setStatus('运行中 · AI自动交易', 'running');
+  log('🚀 OKX GLM AI 自动交易启动！', 'success');
+  log(`杠杆: ${document.getElementById('leverage').value}x | 金额: ${document.getElementById('amount').value}U`, 'info');
+
+  tradingLoop();
 }
 
-function stopTrading(){
-  running=false;
-  if(timer)clearTimeout(timer);
-  document.getElementById('btnStart').style.display='block';
-  document.getElementById('btnStop').style.display='none';
-  setStatus('系统待机','');
-  log('SYSTEM OFFLINE','warn');
+function stopTrading() {
+  running = false;
+  if (timer) clearTimeout(timer);
+  document.getElementById('btnStart').style.display = 'block';
+  document.getElementById('btnStop').style.display = 'none';
+  setStatus('已停止', '');
+  log('🛑 已停止', 'warn');
 }
 </script>
 </body>
