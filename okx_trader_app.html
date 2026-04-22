@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>OKX AI 自动交易</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;700;900&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --card: #111827;
+    --card2: #1f2937;
+    --accent: #f59e0b;
+    --green: #10b981;
+    --red: #ef4444;
+    --blue: #3b82f6;
+    --text: #f9fafb;
+    --muted: #6b7280;
+    --border: #374151;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans SC', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #1a1f35 0%, #0d1117 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 20px 16px 16px;
+    text-align: center;
+  }
+
+  .header h1 {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: 2px;
+  }
+
+  .header p {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .status-bar {
+    background: var(--card);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+  }
+  .status-dot.running { background: var(--green); animation: pulse 1.5s infinite; }
+  .status-dot.error { background: var(--red); }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  #statusText { font-size: 13px; color: var(--muted); }
+
+  .container { padding: 16px; max-width: 480px; margin: 0 auto; }
+
+  .section {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    margin-top: 12px;
+  }
+
+  label:first-of-type { margin-top: 0; }
+
+  input, select {
+    width: 100%;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'Space Mono', monospace;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--accent);
+  }
+
+  input::placeholder { color: var(--muted); font-size: 12px; }
+
+  .toggle-key {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .toggle-key input { flex: 1; margin-top: 0; }
+
+  .eye-btn {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .params-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .params-grid label { margin-top: 0; }
+
+  .btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: 12px;
+    border: none;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Noto Sans SC', sans-serif;
+    letter-spacing: 1px;
+  }
+
+  .btn-start {
+    background: var(--accent);
+    color: #0a0e1a;
+  }
+
+  .btn-start:hover { background: #d97706; transform: translateY(-1px); }
+  .btn-start:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
+
+  .btn-stop {
+    background: var(--red);
+    color: white;
+  }
+
+  .btn-stop:hover { background: #dc2626; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .stat-card {
+    background: var(--card2);
+    border-radius: 10px;
+    padding: 12px 8px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+
+  .stat-val {
+    font-size: 20px;
+    font-weight: 900;
+    font-family: 'Space Mono', monospace;
+    color: var(--accent);
+  }
+
+  .stat-val.green { color: var(--green); }
+  .stat-val.red { color: var(--red); }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+    letter-spacing: 1px;
+  }
+
+  .log-box {
+    background: #050810;
+    border-radius: 10px;
+    padding: 12px;
+    height: 260px;
+    overflow-y: auto;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    line-height: 1.8;
+    border: 1px solid var(--border);
+  }
+
+  .log-box::-webkit-scrollbar { width: 4px; }
+  .log-box::-webkit-scrollbar-track { background: transparent; }
+  .log-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .log-line { color: var(--muted); }
+  .log-line.info { color: var(--text); }
+  .log-line.success { color: var(--green); }
+  .log-line.error { color: var(--red); }
+  .log-line.warn { color: var(--accent); }
+  .log-line.trade { color: var(--blue); }
+
+  .coin-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .badge {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .badge.active {
+    background: var(--accent);
+    color: #0a0e1a;
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+
+  .warning-box {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 12px;
+    color: #fca5a5;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  .current-trade {
+    background: var(--card2);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-left: 3px solid var(--green);
+    display: none;
+  }
+
+  .current-trade.show { display: block; }
+  .current-trade .symbol { font-weight: 700; font-size: 15px; color: var(--text); }
+  .current-trade .direction { font-size: 12px; margin-top: 2px; }
+  .current-trade .direction.long { color: var(--green); }
+  .current-trade .direction.short { color: var(--red); }
+  .current-trade .pnl { font-size: 18px; font-weight: 900; font-family: 'Space Mono', monospace; margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>⚡ OKX AI 交易机器人</h1>
+  <p>智谱GLM驱动 · 自动扫描小币 · 20倍杠杆</p>
+</div>
+
+<div class="status-bar">
+  <div class="status-dot" id="statusDot"></div>
+  <span id="statusText">未启动</span>
+</div>
+
+<div class="container">
+
+  <!-- 统计 -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-val" id="statRounds">0</div>
+      <div class="stat-label">分析轮次</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="statTrades">0</div>
+      <div class="stat-label">交易次数</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="statPnl">--</div>
+      <div class="stat-label">当前盈亏</div>
+    </div>
+  </div>
+
+  <!-- 当前持仓 -->
+  <div class="current-trade" id="currentTrade">
+    <div class="symbol" id="tradeSymbol">--</div>
+    <div class="direction" id="tradeDirection">--</div>
+    <div class="pnl" id="tradePnl">--</div>
+  </div>
+
+  <!-- Keys配置 -->
+  <div class="section">
+    <div class="section-title">🔑 API 配置</div>
+
+    <label>智谱 GLM API Key</label>
+    <div class="toggle-key">
+      <input type="password" id="glmKey" placeholder="粘贴你的GLM Key">
+      <button class="eye-btn" onclick="toggleKey('glmKey')">👁</button>
+    </div>
+
+    <label>OKX API Key</label>
+    <div class="toggle-key">
+      <input type="password" id="okxKey" placeholder="OKX API Key">
+      <button class="eye-btn" onclick="toggleKey('okxKey')">👁</button>
+    </div>
+
+    <label>OKX Secret Key</label>
+    <div class="toggle-key">
+      <input type="password" id="okxSecret" placeholder="OKX Secret Key">
+      <button class="eye-btn" onclick="toggleKey('okxSecret')">👁</button>
+    </div>
+
+    <label>OKX Passphrase</label>
+    <div class="toggle-key">
+      <input type="password" id="okxPass" placeholder="OKX Passphrase">
+      <button class="eye-btn" onclick="toggleKey('okxPass')">👁</button>
+    </div>
+  </div>
+
+  <!-- 交易参数 -->
+  <div class="section">
+    <div class="section-title">⚙️ 交易参数</div>
+
+    <div class="params-grid">
+      <div>
+        <label>杠杆倍数</label>
+        <select id="leverage">
+          <option value="5">5x</option>
+          <option value="10">10x</option>
+          <option value="20" selected>20x</option>
+          <option value="50">50x</option>
+        </select>
+      </div>
+      <div>
+        <label>每次金额(U)</label>
+        <input type="number" id="amount" value="100" min="10" max="500">
+      </div>
+      <div>
+        <label>止损(%)</label>
+        <input type="number" id="stopLoss" value="40" min="10" max="80">
+      </div>
+      <div>
+        <label>止盈(%)</label>
+        <input type="number" id="takeProfit" value="100" min="20" max="500">
+      </div>
+    </div>
+
+    <label>扫描间隔</label>
+    <select id="interval">
+      <option value="60">1分钟（激进）</option>
+      <option value="180">3分钟</option>
+      <option value="300" selected>5分钟（推荐）</option>
+      <option value="600">10分钟（保守）</option>
+    </select>
+
+    <label>候选币种（可多选）</label>
+    <div class="coin-badges" id="coinBadges">
+      <span class="badge active" data-coin="PEPE-USDT-SWAP">🐸 PEPE</span>
+      <span class="badge active" data-coin="WIF-USDT-SWAP">🐕 WIF</span>
+      <span class="badge active" data-coin="DOGE-USDT-SWAP">🐶 DOGE</span>
+      <span class="badge active" data-coin="BONK-USDT-SWAP">🔥 BONK</span>
+      <span class="badge active" data-coin="SHIB-USDT-SWAP">💎 SHIB</span>
+      <span class="badge active" data-coin="FLOKI-USDT-SWAP">🚀 FLOKI</span>
+    </div>
+  </div>
+
+  <!-- 风险提示 -->
+  <div class="warning-box">
+    ⚠️ <strong>风险提示：</strong>加密货币合约交易风险极高，20倍杠杆可能导致快速亏损。Key仅在您本地浏览器运行，不上传任何服务器。请确保您了解并接受风险后再启动。
+  </div>
+
+  <!-- 按钮 -->
+  <button class="btn btn-start" id="btnStart" onclick="startTrading()">🚀 启动 AI 自动交易</button>
+  <button class="btn btn-stop" id="btnStop" onclick="stopTrading()" style="display:none;margin-top:10px">⛔ 停止交易</button>
+
+  <!-- 日志 -->
+  <div class="section" style="margin-top:12px">
+    <div class="section-title">📋 实时日志</div>
+    <div class="log-box" id="logBox">
+      <div class="log-line">等待启动...</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let running = false;
+let timer = null;
+let rounds = 0;
+let trades = 0;
+let currentPosition = null;
+let currentSymbol = null;
+let entryPrice = 0;
+
+// 币种选择
+document.querySelectorAll('.badge').forEach(b => {
+  b.addEventListener('click', () => b.classList.toggle('active'));
+});
+
+function toggleKey(id) {
+  const el = document.getElementById(id);
+  el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+function log(msg, type = 'info') {
+  const box = document.getElementById('logBox');
+  const now = new Date().toLocaleTimeString('zh-CN');
+  const div = document.createElement('div');
+  div.className = `log-line ${type}`;
+  div.textContent = `[${now}] ${msg}`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function setStatus(text, state) {
+  document.getElementById('statusText').textContent = text;
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot ' + (state || '');
+}
+
+function updateStats() {
+  document.getElementById('statRounds').textContent = rounds;
+  document.getElementById('statTrades').textContent = trades;
+}
+
+function getSelectedCoins() {
+  return Array.from(document.querySelectorAll('.badge.active')).map(b => b.dataset.coin);
+}
+
+// 获取行情
+async function getTicker(symbol) {
+  try {
+    const r = await fetch(`https://www.okx.com/api/v5/market/ticker?instId=${symbol}`);
+    const d = await r.json();
+    if (d.code === '0' && d.data.length) {
+      const t = d.data[0];
+      const price = parseFloat(t.last);
+      const open24 = parseFloat(t.sodUtc8) || price;
+      return {
+        symbol,
+        price,
+        change_pct: (price - open24) / open24 * 100,
+        high: parseFloat(t.high24h),
+        low: parseFloat(t.low24h),
+      };
+    }
+  } catch(e) {}
+  return null;
+}
+
+// 获取K线
+async function getKlines(symbol) {
+  try {
+    const r = await fetch(`https://www.okx.com/api/v5/market/candles?instId=${symbol}&bar=15m&limit=10`);
+    const d = await r.json();
+    if (d.code === '0') {
+      return d.data.reverse().map(c => ({
+        open: parseFloat(c[1]), high: parseFloat(c[2]),
+        low: parseFloat(c[3]), close: parseFloat(c[4])
+      }));
+    }
+  } catch(e) {}
+  return [];
+}
+
+// 选最强势币
+async function pickBestCoin() {
+  const coins = getSelectedCoins();
+  if (!coins.length) return null;
+  log('🔍 扫描小币...', 'info');
+  let best = null, bestScore = 0;
+  for (const coin of coins) {
+    const t = await getTicker(coin);
+    if (t) {
+      const score = Math.abs(t.change_pct);
+      log(`  ${coin.split('-')[0]}: ${t.change_pct > 0 ? '+' : ''}${t.change_pct.toFixed(2)}%`, 'log-line');
+      if (score > bestScore) { bestScore = score; best = t; }
+    }
+  }
+  if (best) log(`🎯 选中: ${best.symbol.split('-')[0]} | ${best.change_pct > 0 ? '+' : ''}${best.change_pct.toFixed(2)}%`, 'warn');
+  return best;
+}
+
+// GLM分析
+async function askGLM(market, klines) {
+  const glmKey = document.getElementById('glmKey').value.trim();
+  if (!glmKey) { log('❌ GLM Key未填写', 'error'); return 'WAIT'; }
+
+  const klineText = klines.slice(-5).map((k, i) =>
+    `K${i+1}: 开${k.open.toFixed(6)} 收${k.close.toFixed(6)}`
+  ).join('\n');
+
+  const prompt = `你是加密货币短线交易专家。
+币种:${market.symbol} 当前价:${market.price.toFixed(6)} 24h涨跌:${market.change_pct.toFixed(2)}%
+最近5根15分钟K线:\n${klineText}
+这是AI交易大赛，20倍杠杆，目标最高收益率。
+严格按格式回复：
+决策: LONG 或 SHORT 或 WAIT
+信心: 高 或 中 或 低
+理由: 一句话`;
+
+  try {
+    const r = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${glmKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'glm-4-flash',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 100,
+        temperature: 0.3
+      })
+    });
+    const d = await r.json();
+    const reply = d.choices?.[0]?.message?.content || '';
+    log(`🤖 GLM: ${reply.replace(/\n/g, ' ')}`, 'trade');
+
+    if (reply.includes('LONG')) return 'LONG';
+    if (reply.includes('SHORT')) return 'SHORT';
+    return 'WAIT';
+  } catch(e) {
+    log(`❌ GLM失败: ${e.message}`, 'error');
+    return 'WAIT';
+  }
+}
+
+// OKX签名
+async function okxSign(method, path, body = '') {
+  const ts = new Date().toISOString().replace(/\.\d{3}Z/, '.000Z');
+  const msg = ts + method + path + body;
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(document.getElementById('okxSecret').value.trim()),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(msg));
+  const sign = btoa(String.fromCharCode(...new Uint8Array(sig)));
+  return { ts, sign };
+}
+
+async function okxRequest(method, path, body = null) {
+  const bodyStr = body ? JSON.stringify(body) : '';
+  const { ts, sign } = await okxSign(method, path, bodyStr);
+  try {
+    const r = await fetch('https://www.okx.com' + path, {
+      method,
+      headers: {
+        'OK-ACCESS-KEY': document.getElementById('okxKey').value.trim(),
+        'OK-ACCESS-SIGN': sign,
+        'OK-ACCESS-TIMESTAMP': ts,
+        'OK-ACCESS-PASSPHRASE': document.getElementById('okxPass').value.trim(),
+        'Content-Type': 'application/json'
+      },
+      body: bodyStr || undefined
+    });
+    return await r.json();
+  } catch(e) {
+    return { code: '-1', msg: e.message };
+  }
+}
+
+async function placeOrder(symbol, side, price) {
+  const amount = parseInt(document.getElementById('amount').value);
+  const lever = document.getElementById('leverage').value;
+
+  // 设置杠杆
+  await okxRequest('POST', '/api/v5/account/set-leverage', {
+    instId: symbol, lever: String(lever), mgnMode: 'cross'
+  });
+
+  // 计算张数
+  let sz = Math.max(1, Math.floor(amount / price / 10));
+  if (['PEPE', 'BONK', 'SHIB', 'FLOKI'].some(x => symbol.includes(x))) {
+    sz = Math.max(1, Math.floor(amount / price / 100));
+  }
+
+  const result = await okxRequest('POST', '/api/v5/trade/order', {
+    instId: symbol,
+    tdMode: 'cross',
+    side: side === 'LONG' ? 'buy' : 'sell',
+    posSide: side === 'LONG' ? 'long' : 'short',
+    ordType: 'market',
+    sz: String(sz)
+  });
+
+  if (result.code === '0') {
+    log(`✅ 开仓成功! ${side} ${symbol.split('-')[0]} ${lever}x`, 'success');
+    trades++;
+    updateStats();
+    return true;
+  } else {
+    log(`❌ 开仓失败: ${result.msg}`, 'error');
+    return false;
+  }
+}
+
+async function closePosition(symbol) {
+  const result = await okxRequest('POST', '/api/v5/trade/close-position', {
+    instId: symbol, mgnMode: 'cross', autoCxl: true
+  });
+  if (result.code === '0') {
+    log(`✅ 平仓成功`, 'success');
+  }
+}
+
+async function getPnl(symbol) {
+  const r = await okxRequest('GET', `/api/v5/account/positions?instId=${symbol}`);
+  if (r.data && r.data.length) {
+    return parseFloat(r.data[0].uplRatio || 0);
+  }
+  return null;
+}
+
+// 主循环
+async function tradingLoop() {
+  if (!running) return;
+  rounds++;
+  updateStats();
+  log(`\n──── 第${rounds}轮 ────`, 'warn');
+
+  const sl = parseInt(document.getElementById('stopLoss').value) / 100;
+  const tp = parseInt(document.getElementById('takeProfit').value) / 100;
+
+  // 检查持仓
+  if (currentPosition && currentSymbol) {
+    const pnl = await getPnl(currentSymbol);
+    if (pnl !== null) {
+      const pnlPct = (pnl * 100).toFixed(2);
+      log(`持仓盈亏: ${pnl > 0 ? '+' : ''}${pnlPct}%`, pnl > 0 ? 'success' : 'error');
+
+      // 更新显示
+      const pnlEl = document.getElementById('statPnl');
+      pnlEl.textContent = (pnl > 0 ? '+' : '') + pnlPct + '%';
+      pnlEl.className = 'stat-val ' + (pnl > 0 ? 'green' : 'red');
+
+      document.getElementById('tradePnl').textContent = (pnl > 0 ? '+' : '') + pnlPct + '%';
+      document.getElementById('tradePnl').style.color = pnl > 0 ? 'var(--green)' : 'var(--red)';
+
+      if (pnl <= -sl) {
+        log(`⚠️ 触发止损! 亏损${pnlPct}%`, 'error');
+        await closePosition(currentSymbol);
+        currentPosition = null; currentSymbol = null;
+        document.getElementById('currentTrade').classList.remove('show');
+        scheduleNext(); return;
+      }
+      if (pnl >= tp) {
+        log(`🎉 触发止盈! 盈利${pnlPct}%`, 'success');
+        await closePosition(currentSymbol);
+        currentPosition = null; currentSymbol = null;
+        document.getElementById('currentTrade').classList.remove('show');
+        scheduleNext(); return;
+      }
+    }
+  }
+
+  // 选最强币
+  const best = await pickBestCoin();
+  if (!best) { scheduleNext(); return; }
+
+  // 换币
+  if (currentPosition && currentSymbol && currentSymbol !== best.symbol) {
+    log(`🔄 换目标币`, 'warn');
+    await closePosition(currentSymbol);
+    currentPosition = null; currentSymbol = null;
+    await new Promise(r => setTimeout(r, 2000));
+  }
+
+  // GLM分析
+  const klines = await getKlines(best.symbol);
+  const decision = await askGLM(best, klines);
+  log(`决策: ${decision}`, decision === 'WAIT' ? 'info' : 'trade');
+
+  // 执行
+  if (!currentPosition) {
+    if (decision === 'LONG' || decision === 'SHORT') {
+      const ok = await placeOrder(best.symbol, decision, best.price);
+      if (ok) {
+        currentPosition = decision;
+        currentSymbol = best.symbol;
+        entryPrice = best.price;
+
+        // 显示持仓卡片
+        document.getElementById('currentTrade').classList.add('show');
+        document.getElementById('tradeSymbol').textContent = best.symbol.split('-')[0];
+        document.getElementById('tradeDirection').textContent = decision === 'LONG' ? '📈 做多' : '📉 做空';
+        document.getElementById('tradeDirection').className = 'direction ' + (decision === 'LONG' ? 'long' : 'short');
+        document.getElementById('tradePnl').textContent = '0.00%';
+      }
+    } else {
+      log('⏸ 观望', 'info');
+    }
+  } else {
+    const opp = currentPosition === 'LONG' ? 'SHORT' : 'LONG';
+    if (decision === opp) {
+      log('🔄 反手信号!', 'warn');
+      await closePosition(currentSymbol);
+      await new Promise(r => setTimeout(r, 2000));
+      const ok = await placeOrder(best.symbol, opp, best.price);
+      if (ok) { currentPosition = opp; currentSymbol = best.symbol; }
+    } else {
+      log(`⏳ 继续持有 ${currentPosition}`, 'info');
+    }
+  }
+
+  scheduleNext();
+}
+
+function scheduleNext() {
+  if (!running) return;
+  const interval = parseInt(document.getElementById('interval').value);
+  log(`⏰ ${interval/60}分钟后下一轮...`, 'info');
+  timer = setTimeout(tradingLoop, interval * 1000);
+}
+
+function startTrading() {
+  if (!document.getElementById('glmKey').value.trim() ||
+      !document.getElementById('okxKey').value.trim() ||
+      !document.getElementById('okxSecret').value.trim() ||
+      !document.getElementById('okxPass').value.trim()) {
+    alert('请先填写所有API Key！');
+    return;
+  }
+
+  running = true;
+  rounds = 0; trades = 0;
+  document.getElementById('logBox').innerHTML = '';
+  document.getElementById('btnStart').style.display = 'none';
+  document.getElementById('btnStop').style.display = 'block';
+  setStatus('运行中 · AI自动交易', 'running');
+  log('🚀 OKX GLM AI 自动交易启动！', 'success');
+  log(`杠杆: ${document.getElementById('leverage').value}x | 金额: ${document.getElementById('amount').value}U`, 'info');
+
+  tradingLoop();
+}
+
+function stopTrading() {
+  running = false;
+  if (timer) clearTimeout(timer);
+  document.getElementById('btnStart').style.display = 'block';
+  document.getElementById('btnStop').style.display = 'none';
+  setStatus('已停止', '');
+  log('🛑 已停止', 'warn');
+}
+</script>
+</body>
+</html>
