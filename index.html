@@ -495,7 +495,7 @@ async function okxReq(method, path, body=null) {
       body:bodyStr||undefined
     });
     return await r.json();
-  } catch(e) { return {code:'-1',msg:e.message}; }
+  } catch(e) { console.error('OKX请求失败:',e); return {code:'-1',msg:e.message}; }
 }
 
 async function analyze() {
@@ -593,7 +593,10 @@ async function execute() {
 
   try {
     // 设置杠杆
-    await okxReq('POST','/api/v5/account/set-leverage',{instId:strat.coin.id,lever:String(strat.leverage),mgnMode:'cross'});
+    // 先设置持仓模式为双向持仓
+    await okxReq('POST','/api/v5/account/set-position-mode',{posMode:'long_short_mode'});
+    // 设置杠杆
+    await okxReq('POST','/api/v5/account/set-leverage',{instId:strat.coin.id,lever:String(strat.leverage),mgnMode:'cross',posSide:strat.signal==='LONG'?'long':'short'});
 
     // 计算张数
     const price=strat.coin.price;
@@ -613,7 +616,7 @@ async function execute() {
       toast('✅ 下单成功！开始监控持仓');
       showPosition();
     } else {
-      alert('下单失败：'+result.msg+'\n\n可能原因：\n1. 合约权限未开通\n2. 资金不足\n3. Key填写有误');
+      alert('下单失败！\n错误码：'+result.code+'\n错误信息：'+result.msg+'\n\n请检查：\n1. API Key是否重新创建\n2. IP白名单是否留空\n3. 资金是否在交易账户');
       document.getElementById('btnExec').disabled=false;
     }
   } catch(e) {
